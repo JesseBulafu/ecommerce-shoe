@@ -3,6 +3,7 @@ import { Jost } from "next/font/google";
 import "./globals.css";
 import { NextFontWithVariable } from "next/dist/compiled/@next/font";
 
+
 const jost: NextFontWithVariable = Jost({ subsets: ["latin"], variable: "--font-jost" });
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
       lang="en"
       className={`${jost.variable} h-full antialiased`}
     >
+      
       <body className="min-h-full flex flex-col">{children}</body>
+      
     </html>
   );
 }
