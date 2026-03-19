@@ -3,7 +3,7 @@ dotenv.config({ path: ".env.local" });
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { products } from "../src/db/schema";
+import { products } from "../src/db/schema/index";
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);

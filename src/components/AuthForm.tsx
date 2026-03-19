@@ -1,14 +1,32 @@
 "use client";
 
+import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SocialProviders from "./SocialProviders";
+import { signUp, signIn, type AuthActionResult } from "@/lib/auth/actions";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
 }
 
+const initialState: AuthActionResult = { success: false };
+
 export default function AuthForm({ mode }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+
+  const action = isSignUp ? signUp : signIn;
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: AuthActionResult, formData: FormData) => {
+      if (callbackUrl) {
+        formData.set("callbackUrl", callbackUrl);
+      }
+      return action(formData);
+    },
+    initialState,
+  );
 
   return (
     <div className="font-jost">
@@ -44,7 +62,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {/* Form */}
-      <form className="flex flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col gap-5" action={formAction}>
+        {/* Global error message */}
+        {state.error && (
+          <div className="rounded-lg bg-red/10 px-4 py-3 text-caption text-red">
+            {state.error}
+          </div>
+        )}
+
         {/* Full Name — sign-up only */}
         {isSignUp && (
           <div className="flex flex-col gap-1.5">
@@ -60,6 +85,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
               required
               className="rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body text-dark-900 placeholder:text-dark-500 transition-colors focus:border-dark-900 focus:outline-none"
             />
+            {state.fieldErrors?.name && (
+              <p className="text-footnote text-red">{state.fieldErrors.name[0]}</p>
+            )}
           </div>
         )}
 
@@ -77,6 +105,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
             required
             className="rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body text-dark-900 placeholder:text-dark-500 transition-colors focus:border-dark-900 focus:outline-none"
           />
+          {state.fieldErrors?.email && (
+            <p className="text-footnote text-red">{state.fieldErrors.email[0]}</p>
+          )}
         </div>
 
         {/* Password */}
@@ -94,14 +125,24 @@ export default function AuthForm({ mode }: AuthFormProps) {
             required
             className="rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body text-dark-900 placeholder:text-dark-500 transition-colors focus:border-dark-900 focus:outline-none"
           />
+          {state.fieldErrors?.password && (
+            <p className="text-footnote text-red">{state.fieldErrors.password[0]}</p>
+          )}
         </div>
 
         {/* Submit */}
         <button
           type="submit"
-          className="mt-2 w-full rounded-lg bg-dark-900 px-4 py-3.5 text-body-medium text-light-100 transition-colors hover:bg-dark-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark-900 cursor-pointer"
+          disabled={isPending}
+          className="mt-2 w-full rounded-lg bg-dark-900 px-4 py-3.5 text-body-medium text-light-100 transition-colors hover:bg-dark-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dark-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSignUp ? "Sign Up" : "Sign In"}
+          {isPending
+            ? isSignUp
+              ? "Creating Account..."
+              : "Signing In..."
+            : isSignUp
+              ? "Sign Up"
+              : "Sign In"}
         </button>
       </form>
 
