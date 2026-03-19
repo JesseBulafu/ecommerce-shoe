@@ -62,6 +62,16 @@
 
 @theme inline {
   --font-jost: var(--font-jost);
+  --color-dark-900: var(--color-dark-900);
+  --color-dark-700: var(--color-dark-700);
+  --color-dark-500: var(--color-dark-500);
+  --color-light-100: var(--color-light-100);
+  --color-light-200: var(--color-light-200);
+  --color-light-300: var(--color-light-300);
+  --color-light-400: var(--color-light-400);
+  --color-green: var(--color-green);
+  --color-red: var(--color-red);
+  --color-orange: var(--color-orange);
 }
 
 @utility text-heading-1 {
