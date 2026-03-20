@@ -14,7 +14,7 @@ export default async function AdminProductsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-[26px] font-semibold text-dark-900 tracking-tight">Products</h1>
           <p className="text-[15px] text-dark-500 mt-1">
@@ -43,7 +43,7 @@ export default async function AdminProductsPage() {
       ) : (
         <div className="overflow-hidden rounded-2xl border border-light-300/60 bg-light-100">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[700px] text-left">
               <thead>
                 <tr className="border-b border-light-300/60">
                   <th className="px-5 py-3.5 text-[12px] font-semibold uppercase tracking-wider text-dark-500">Product</th>

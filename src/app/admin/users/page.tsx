@@ -26,7 +26,7 @@ export default async function AdminUsersPage() {
 
       <div className="overflow-hidden rounded-2xl border border-light-300/60 bg-light-100">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+            <table className="w-full min-w-[600px] text-left">
             <thead>
               <tr className="border-b border-light-300/60">
                 <th className="px-5 py-3.5 text-[12px] font-semibold uppercase tracking-wider text-dark-500">User</th>

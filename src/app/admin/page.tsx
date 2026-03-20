@@ -46,7 +46,7 @@ function StatCard({
           )}
         </div>
         <p className="text-[13px] font-medium text-dark-500 mb-1">{label}</p>
-        <p className="text-[28px] font-semibold text-dark-900 tracking-tight leading-none">{value}</p>
+        <p className="text-[22px] sm:text-[28px] font-semibold text-dark-900 tracking-tight leading-none">{value}</p>
       </div>
     </div>
   );
