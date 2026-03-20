@@ -55,20 +55,17 @@ export default function HeroSection({
       className={`flex items-center justify-center py-6 sm:py-10 ${className ?? ""}`}
       style={{ perspective: 600 }}
     >
-      <h1 className="text-heading-1 sm:text-[96px] sm:leading-[100px] font-jost overflow-hidden select-none">
+      <h1 className="text-[40px] leading-[48px] xs:text-[52px] xs:leading-[60px] sm:text-[72px] sm:leading-[78px] md:text-[96px] md:leading-[100px] font-bold font-jost overflow-hidden select-none">
         {title.split("").map((char, i) => (
           <span
             key={i}
-            className="hero-char inline-block"
+            className="hero-char inline-block px-1.5 py-0.5 mx-[2px] sm:px-3 sm:py-1 sm:mx-1 rounded-lg sm:rounded-[10px]"
             style={{
               transformOrigin: "bottom center",
               background: "rgba(255,255,255,0.15)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",
               border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: "10px",
-              padding: "4px 12px",
-              margin: "0 3px",
               color: "var(--color-dark-900)",
               textShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
