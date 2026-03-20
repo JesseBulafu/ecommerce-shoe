@@ -21,6 +21,16 @@ import CollapsibleSection, { StarRating } from "./CollapsibleSection";
 
 interface Props {
   product: MockProduct;
+  /** Number of reviews to show in the section title. */
+  reviewCount: number;
+  /** Pre-computed average rating (0–5). Used for the star display. */
+  averageRating: number;
+  /**
+   * React node rendered inside the Reviews collapsible.
+   * Passed from the server page so real review data can be injected into
+   * this client component without breaking the server/client boundary.
+   */
+  reviewsSlot: React.ReactNode;
 }
 
 // ---------------------------------------------------------------------------
@@ -36,7 +46,12 @@ function validVariants(product: MockProduct) {
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function ProductGallery({ product }: Props) {
+export default function ProductGallery({
+  product,
+  reviewCount,
+  averageRating,
+  reviewsSlot,
+}: Props) {
   const variants = validVariants(product);
   const [variantIdx, setVariantIdx] = useState(0);
   const [imageIdx, setImageIdx] = useState(0);
@@ -325,15 +340,14 @@ export default function ProductGallery({ product }: Props) {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Reviews (10)"
-            headerExtra={<StarRating rating={4.5} />}
+            title={`Reviews (${reviewCount})`}
+            headerExtra={
+              reviewCount > 0 ? (
+                <StarRating rating={averageRating} />
+              ) : undefined
+            }
           >
-            <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
-              <StarRating rating={0} />
-              <p className="text-caption text-dark-500 font-jost">
-                No reviews yet. Be the first to share your thoughts.
-              </p>
-            </div>
+            {reviewsSlot}
           </CollapsibleSection>
 
           {/* Close border for last section */}

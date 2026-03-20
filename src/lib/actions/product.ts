@@ -8,6 +8,7 @@ import {
   ilike,
   inArray,
   isNull,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -23,7 +24,9 @@ import {
   productImages,
   products,
   productVariants,
+  reviews,
   sizes,
+  user,
 } from "@/db/schema";
 import type { ProductQueryParams } from "@/lib/utils/query";
 
@@ -417,4 +420,149 @@ export async function getProduct(productId: string): Promise<ProductDetail | nul
 
   if (!result) return null;
   return result as unknown as ProductDetail;
+}
+
+// ---------------------------------------------------------------------------
+// getProductReviews
+// ---------------------------------------------------------------------------
+
+export type ReviewItem = {
+  id: string;
+  author: string;
+  rating: number;
+  content: string | null;
+  /** ISO-8601 string — safe to serialize across the server/client boundary. */
+  createdAt: string;
+};
+
+/**
+ * Returns up to 10 reviews for a product, sorted newest-first.
+ * Joins with the user table to resolve the author's display name.
+ * Returns an empty array when the product has no reviews.
+ */
+export async function getProductReviews(
+  productId: string,
+): Promise<ReviewItem[]> {
+  const rows = await dbRead
+    .select({
+      id:          reviews.id,
+      rating:      reviews.rating,
+      content:     reviews.comment,
+      createdAt:   reviews.createdAt,
+      authorName:  user.name,
+      authorEmail: user.email,
+    })
+    .from(reviews)
+    .innerJoin(user, eq(user.id, reviews.userId))
+    .where(eq(reviews.productId, productId))
+    .orderBy(desc(reviews.createdAt))
+    .limit(10);
+
+  return rows.map((r) => ({
+    id:        r.id,
+    author:    r.authorName ?? r.authorEmail.split("@")[0] ?? "Shopper",
+    rating:    r.rating,
+    content:   r.content ?? null,
+    createdAt: r.createdAt.toISOString(),
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// getRecommendedProducts
+// ---------------------------------------------------------------------------
+
+export type RecommendedProduct = {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  image: string | null;
+  badge: string | null;
+};
+
+/**
+ * Returns up to 4 published products in the same category or gender,
+ * excluding the current product.
+ * Fetches primary images in a single follow-up query to avoid N+1.
+ * Returns an empty array when no related products are found.
+ */
+export async function getRecommendedProducts(
+  productId: string,
+): Promise<RecommendedProduct[]> {
+  // ── Step 1: fetch current product's category + gender ─────────────────
+  const [current] = await dbRead
+    .select({ categoryId: products.categoryId, genderId: products.genderId })
+    .from(products)
+    .where(and(eq(products.id, productId), isNull(products.deletedAt)))
+    .limit(1);
+
+  if (!current) return [];
+
+  // ── Step 2: related products (same category OR same gender) ───────────
+  const rows = await dbRead
+    .select({
+      id:          products.id,
+      name:        products.name,
+      description: products.description,
+      minPrice:    sql<string>`min(${productVariants.price}::numeric)::text`,
+      hasSale:     sql<boolean>`bool_or(${productVariants.salePrice} is not null)`,
+      maxDiscountPct: sql<number | null>`
+        max(
+          case
+            when ${productVariants.salePrice} is not null
+            then round((1 - ${productVariants.salePrice}::numeric / ${productVariants.price}::numeric) * 100)::int
+            else null
+          end
+        )
+      `,
+    })
+    .from(products)
+    .innerJoin(productVariants, eq(productVariants.productId, products.id))
+    .where(
+      and(
+        eq(products.isPublished, true),
+        isNull(products.deletedAt),
+        ne(products.id, productId),
+        or(
+          eq(products.categoryId, current.categoryId),
+          eq(products.genderId,   current.genderId),
+        ),
+      ),
+    )
+    .groupBy(products.id, products.name, products.description)
+    .orderBy(desc(products.createdAt))
+    .limit(4);
+
+  if (!rows.length) return [];
+
+  // ── Step 3: primary image per product (one query, no N+1) ──────────────
+  const ids = rows.map((r) => r.id);
+  const imageRows = await dbRead
+    .select({ productId: productImages.productId, url: productImages.url })
+    .from(productImages)
+    .where(
+      and(
+        inArray(productImages.productId, ids),
+        isNull(productImages.variantId),
+      ),
+    )
+    .orderBy(desc(productImages.isPrimary), asc(productImages.sortOrder));
+
+  const imageMap = new Map<string, string>();
+  for (const img of imageRows) {
+    if (!imageMap.has(img.productId)) imageMap.set(img.productId, img.url);
+  }
+
+  return rows.map((r) => {
+    const pct = r.hasSale && r.maxDiscountPct != null ? r.maxDiscountPct : 0;
+    const rounded = Math.floor(pct / 10) * 10;
+    return {
+      id:          r.id,
+      name:        r.name,
+      description: r.description,
+      price:       `$${Number(r.minPrice).toFixed(2)}`,
+      image:       imageMap.get(r.id) ?? null,
+      badge:       rounded > 0 ? `Extra ${rounded}% off` : null,
+    };
+  });
 }

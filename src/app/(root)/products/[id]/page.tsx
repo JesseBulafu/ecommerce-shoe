@@ -1,11 +1,22 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ShoppingBag } from "lucide-react";
 
 import ProductGallery from "@/components/ProductGallery";
-import Card from "@/components/Card";
-import { getProductById, RELATED_PRODUCTS, type MockProduct, type MockVariant, type MockSize } from "@/lib/mock/product";
-import { getProduct, type ProductDetail } from "@/lib/actions/product";
+import ReviewsContent from "@/components/ReviewsContent";
+import RecommendedProductsSection from "@/components/RecommendedProductsSection";
+import {
+  getProductById,
+  type MockProduct,
+  type MockVariant,
+  type MockSize,
+} from "@/lib/mock/product";
+import {
+  getProduct,
+  getProductReviews,
+  type ProductDetail,
+} from "@/lib/actions/product";
 
 // ---------------------------------------------------------------------------
 // Next.js App Router — params is a Promise in v15+
@@ -137,6 +148,56 @@ export async function generateMetadata({
 }
 
 // ---------------------------------------------------------------------------
+// Skeleton — shown while RecommendedProductsSection loads
+// ---------------------------------------------------------------------------
+
+function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-lg bg-light-300 aspect-square"
+          aria-hidden
+        />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Styled Not Found — renders inline so navbar/footer remain visible
+// ---------------------------------------------------------------------------
+
+function ProductNotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-6 py-32 text-center font-jost px-4">
+      <ShoppingBag size={56} className="text-light-400" aria-hidden />
+      <div className="flex flex-col gap-2">
+        <h1 className="text-heading-3 text-dark-900">Product not found</h1>
+        <p className="text-body text-dark-700 max-w-sm mx-auto">
+          This product may have been removed or the link is incorrect.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <Link
+          href="/products"
+          className="rounded-full bg-dark-900 px-6 py-3 text-body-medium text-light-100 hover:bg-dark-700 transition"
+        >
+          Browse all products
+        </Link>
+        <Link
+          href="/"
+          className="rounded-full border border-light-300 px-6 py-3 text-body-medium text-dark-900 hover:border-dark-500 transition"
+        >
+          Go home
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -146,14 +207,29 @@ export default async function ProductDetailPage({
   params: PageParams;
 }) {
   const { id } = await params;
-  const product = await resolveProduct(id);
 
-  if (!product) notFound();
+  // Fetch product + reviews in parallel — both are fast single queries.
+  const [product, reviews] = await Promise.all([
+    resolveProduct(id),
+    getProductReviews(id),
+  ]);
+
+  // Render an inline Not Found block so the navbar and footer stay visible.
+  if (!product) return <ProductNotFound />;
+
+  // Compute review stats server-side; keeps ProductGallery client component stateless.
+  const reviewCount = reviews.length;
+  const averageRating =
+    reviewCount > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+      : 0;
+  // Round to nearest 0.5 star for the visual star display.
+  const displayRating = Math.round(averageRating * 2) / 2;
 
   return (
     <div className="font-jost">
       {/* ----------------------------------------------------------------
-          Breadcrumb / back navigation (server-rendered)
+          Breadcrumb
           ---------------------------------------------------------------- */}
       <div className="border-b border-light-300">
         <nav
@@ -181,20 +257,27 @@ export default async function ProductDetailPage({
       </div>
 
       {/* ----------------------------------------------------------------
-          Product detail section
-          Gallery + info are rendered by the client component which
-          manages variant / image selection state.
-          The "You Might Also Like" section below is fully server-rendered.
+          Gallery + product info
+          ProductGallery is a client component managing interactive state
+          (selected variant, image). Reviews are injected as a ReactNode
+          slot so real review data stays server-rendered.
           ---------------------------------------------------------------- */}
       <section
         aria-label="Product details"
         className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
       >
-        <ProductGallery product={product} />
+        <ProductGallery
+          product={product}
+          reviewCount={reviewCount}
+          averageRating={displayRating}
+          reviewsSlot={<ReviewsContent reviews={reviews} />}
+        />
       </section>
 
       {/* ----------------------------------------------------------------
-          You Might Also Like (server-rendered)
+          You Might Also Like
+          Wrapped in Suspense — never blocks the main PDP render.
+          RecommendedProductsSection fetches the DB independently.
           ---------------------------------------------------------------- */}
       <section
         aria-label="You might also like"
@@ -204,20 +287,9 @@ export default async function ProductDetailPage({
           <h2 className="text-heading-3 font-jost text-dark-900 mb-6">
             You Might Also Like
           </h2>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {RELATED_PRODUCTS.filter((p) => p.id !== id).map((related) => (
-              <Card
-                key={related.id}
-                href={`/products/${related.id}`}
-                image={related.image}
-                title={related.title}
-                description={`${related.description} · ${related.colorCount} colour${related.colorCount !== 1 ? "s" : ""}`}
-                price={related.price}
-                badge={related.badge}
-              />
-            ))}
-          </div>
+          <Suspense fallback={<ProductGridSkeleton />}>
+            <RecommendedProductsSection productId={id} />
+          </Suspense>
         </div>
       </section>
     </div>
