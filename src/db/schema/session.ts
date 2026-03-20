@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, index } from "drizzle-orm/pg-core";
 import { user } from "./user";
 
 export const session = pgTable("session", {
@@ -12,7 +12,13 @@ export const session = pgTable("session", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [
+  // Better Auth looks up sessions by token on every request
+  index("idx_session_token").on(t.token),
+  index("idx_session_user_id").on(t.userId),
+  // Efficient purging of expired sessions
+  index("idx_session_expires_at").on(t.expiresAt),
+]);
 
 export type Session = typeof session.$inferSelect;
 export type NewSession = typeof session.$inferInsert;

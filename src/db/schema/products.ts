@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { categories } from "./categories";
 import { genders } from "./filters/genders";
@@ -21,12 +22,16 @@ export const products = pgTable("products", {
   defaultVariantId: uuid("default_variant_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Soft-delete: products are never hard-deleted to preserve order history
+  deletedAt: timestamp("deleted_at"),
 }, (t) => [
   index("idx_products_category_id").on(t.categoryId),
   index("idx_products_gender_id").on(t.genderId),
   index("idx_products_brand_id").on(t.brandId),
   index("idx_products_is_published").on(t.isPublished),
   index("idx_products_created_at").on(t.createdAt),
+  // Partial index: only published, non-deleted products are queried in storefront
+  index("idx_products_storefront").on(t.categoryId, t.genderId).where(sql`is_published = true AND deleted_at IS NULL`),
 ]);
 
 export const insertProductSchema = z.object({
@@ -50,6 +55,7 @@ export const selectProductSchema = z.object({
   defaultVariantId: z.string().uuid().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  deletedAt: z.date().nullable(),
 });
 
 export type Product = typeof products.$inferSelect;

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { user } from "./user";
 
 export const account = pgTable("account", {
@@ -17,7 +17,11 @@ export const account = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_account_user_id").on(t.userId),
+  // OAuth provider lookup: find account by provider + external account id
+  uniqueIndex("idx_account_provider_account").on(t.providerId, t.accountId),
+]);
 
 export type Account = typeof account.$inferSelect;
 export type NewAccount = typeof account.$inferInsert;

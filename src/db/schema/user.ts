@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const user = pgTable("user", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -8,7 +9,13 @@ export const user = pgTable("user", {
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+  // Soft-delete: set instead of destroying user data
+  deletedAt: timestamp("deleted_at"),
+}, (t) => [
+  // Partial index: only index active (non-deleted) users
+  index("idx_user_active").on(t.id).where(sql`deleted_at IS NULL`),
+  index("idx_user_created_at").on(t.createdAt),
+]);
 
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
