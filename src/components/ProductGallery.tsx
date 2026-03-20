@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useTransition } from "react";
 import Image from "next/image";
 import {
   ChevronLeft,
@@ -14,6 +14,8 @@ import {
 import type { MockProduct } from "@/lib/mock/product";
 import SizePicker from "./SizePicker";
 import CollapsibleSection, { StarRating } from "./CollapsibleSection";
+import { addCartItem } from "@/lib/actions/cart";
+import { useCartStore } from "@/store/cart";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -55,6 +57,10 @@ export default function ProductGallery({
   const variants = validVariants(product);
   const [variantIdx, setVariantIdx] = useState(0);
   const [imageIdx, setImageIdx] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [addToBagMsg, setAddToBagMsg] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const setStoreItems = useCartStore((s) => s.setItems);
 
   const currentVariant = variants[variantIdx] ?? null;
   const images = currentVariant?.images ?? [];
@@ -84,6 +90,30 @@ export default function ProductGallery({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [goPrev, goNext]);
+
+  const handleAddToBag = () => {
+    if (!selectedSize) {
+      setAddToBagMsg("Please select a size.");
+      return;
+    }
+    const colorName = currentVariant?.color ?? "";
+    const variantId = product.variantMap[`${colorName}:${selectedSize}`];
+    if (!variantId) {
+      setAddToBagMsg("This combination is currently unavailable.");
+      return;
+    }
+    setAddToBagMsg("");
+    startTransition(async () => {
+      try {
+        const updated = await addCartItem(variantId, 1);
+        setStoreItems(updated);
+        setAddToBagMsg("✓ Added to bag!");
+        setTimeout(() => setAddToBagMsg(""), 3000);
+      } catch {
+        setAddToBagMsg("Something went wrong. Please try again.");
+      }
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1fr] xl:grid-cols-[7fr_5fr]">
@@ -298,16 +328,31 @@ export default function ProductGallery({
         )}
 
         {/* Size picker */}
-        <SizePicker sizes={product.sizes} />
+        <SizePicker sizes={product.sizes} onSelect={setSelectedSize} />
+
+        {/* Feedback message (error or success) */}
+        {addToBagMsg && (
+          <p
+            className={`text-caption font-jost ${
+              addToBagMsg.startsWith("✓")
+                ? "text-green"
+                : "text-red"
+            }`}
+          >
+            {addToBagMsg}
+          </p>
+        )}
 
         {/* CTA buttons */}
         <div className="flex flex-col gap-3 pt-1">
           <button
             type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-dark-900 px-6 py-4 text-body-medium font-jost text-light-100 hover:bg-dark-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-900"
+            disabled={isPending}
+            onClick={handleAddToBag}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-dark-900 px-6 py-4 text-body-medium font-jost text-light-100 hover:bg-dark-700 disabled:opacity-60 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-900"
           >
             <ShoppingBag size={18} aria-hidden />
-            Add to Bag
+            {isPending ? "Adding…" : "Add to Bag"}
           </button>
           <button
             type="button"

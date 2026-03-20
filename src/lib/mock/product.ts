@@ -29,6 +29,12 @@ export interface MockProduct {
   styleCode: string;
   variants: MockVariant[];
   sizes: MockSize[];
+  /**
+   * Maps "ColorName:SizeName" → real DB product_variant UUID.
+   * Empty for mock/demo products; populated by dbProductToMock for DB products.
+   * Used by ProductGallery to call addCartItem with the correct variant ID.
+   */
+  variantMap: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +144,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
       },
     ],
     sizes: ALL_SIZES,
+    variantMap: {},
   },
   {
     id: "2",
@@ -178,6 +185,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
       },
     ],
     sizes: ALL_SIZES,
+    variantMap: {},
   },
   {
     id: "3",
@@ -210,6 +218,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
       },
     ],
     sizes: ALL_SIZES,
+    variantMap: {},
   },
   {
     id: "4",
@@ -243,6 +252,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
       },
     ],
     sizes: ALL_SIZES,
+    variantMap: {},
   },
   {
     id: "5",
@@ -273,6 +283,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
       },
     ],
     sizes: ALL_SIZES,
+    variantMap: {},
   },
 ];
 

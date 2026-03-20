@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useTransition } from "react";
 import type { ProductVariant } from "@/db/schema";
 import { useCartStore } from "@/store/cart";
+import { addCartItem } from "@/lib/actions/cart";
 
 /** Display-ready data shape passed to the card. Decouples UI from raw DB rows. */
 export interface ProductCardData {
@@ -14,7 +16,15 @@ export interface ProductCardData {
 }
 
 export function ProductCard({ product }: { product: ProductCardData }) {
-  const addItem = useCartStore((s) => s.addItem);
+  const setItems = useCartStore((s) => s.setItems);
+  const [isPending, startTransition] = useTransition();
+
+  const handleAdd = () => {
+    startTransition(async () => {
+      const updated = await addCartItem(product.defaultVariant.id, 1);
+      setItems(updated);
+    });
+  };
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
@@ -44,10 +54,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             ${Number(product.defaultVariant.price).toFixed(2)}
           </span>
           <button
-            onClick={() => addItem(product.defaultVariant)}
-            className="cursor-pointer rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+            disabled={isPending}
+            onClick={handleAdd}
+            className="cursor-pointer rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
-            Add to Cart
+            {isPending ? "Adding…" : "Add to Cart"}
           </button>
         </div>
       </div>

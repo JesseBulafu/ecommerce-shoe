@@ -6,10 +6,19 @@ import type { MockSize } from "@/lib/mock/product";
 
 interface SizePickerProps {
   sizes: MockSize[];
+  /** Called whenever the selected size changes (including deselection → null). */
+  onSelect?: (label: string | null) => void;
 }
 
-export default function SizePicker({ sizes }: SizePickerProps) {
+export default function SizePicker({ sizes, onSelect }: SizePickerProps) {
   const [selected, setSelected] = useState<string | null>(null);
+
+  const handleClick = (label: string, available: boolean) => {
+    if (!available) return;
+    const next = selected === label ? null : label;
+    setSelected(next);
+    onSelect?.(next);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,7 +48,7 @@ export default function SizePicker({ sizes }: SizePickerProps) {
               key={label}
               type="button"
               disabled={!available}
-              onClick={() => available && setSelected(isSelected ? null : label)}
+              onClick={() => handleClick(label, available)}
               aria-pressed={isSelected}
               aria-disabled={!available}
               className={[

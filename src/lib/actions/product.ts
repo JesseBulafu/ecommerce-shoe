@@ -435,6 +435,9 @@ export type ReviewItem = {
   createdAt: string;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Returns up to 10 reviews for a product, sorted newest-first.
  * Joins with the user table to resolve the author's display name.
@@ -443,6 +446,8 @@ export type ReviewItem = {
 export async function getProductReviews(
   productId: string,
 ): Promise<ReviewItem[]> {
+  if (!UUID_RE.test(productId)) return [];
+
   const rows = await dbRead
     .select({
       id:          reviews.id,
@@ -489,6 +494,8 @@ export type RecommendedProduct = {
 export async function getRecommendedProducts(
   productId: string,
 ): Promise<RecommendedProduct[]> {
+  if (!UUID_RE.test(productId)) return [];
+
   // ── Step 1: fetch current product's category + gender ─────────────────
   const [current] = await dbRead
     .select({ categoryId: products.categoryId, genderId: products.genderId })

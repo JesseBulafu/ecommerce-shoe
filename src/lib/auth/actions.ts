@@ -2,10 +2,11 @@
 
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq, lt } from "drizzle-orm";
+import { eq, lt, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { guest } from "@/db/schema";
+import { carts, cartItems } from "@/db/schema/carts";
 import { signUpSchema, signInSchema } from "./validation";
 import crypto from "crypto";
 
@@ -203,22 +204,63 @@ export async function mergeGuestCartWithUserCart(
     return;
   }
 
-  // ──────────────────────────────────────────────────────
-  // TODO: When cart tables are implemented, add migration
-  // logic here. Example:
-  //
-  // const guestCartItems = await db.select()
-  //   .from(cartItems)
-  //   .where(eq(cartItems.guestId, guestRecord.id));
-  //
-  // for (const item of guestCartItems) {
-  //   await db.insert(cartItems).values({
-  //     userId,
-  //     productId: item.productId,
-  //     quantity: item.quantity,
-  //   }).onConflictDoUpdate(...);
-  // }
-  // ──────────────────────────────────────────────────────
+  // ── Find guest cart ────────────────────────────────────────────────────
+  const [guestCart] = await db
+    .select({ id: carts.id })
+    .from(carts)
+    .where(eq(carts.guestId, guestRecord.id))
+    .limit(1);
+
+  if (guestCart) {
+    // ── Find or create the user's cart ──────────────────────────────────
+    let [userCart] = await db
+      .select({ id: carts.id })
+      .from(carts)
+      .where(eq(carts.userId, _userId))
+      .limit(1);
+
+    if (!userCart) {
+      [userCart] = await db
+        .insert(carts)
+        .values({ userId: _userId })
+        .returning({ id: carts.id });
+    }
+
+    // ── Merge items: add quantities for existing variants, insert new ones
+    const guestItems = await db
+      .select()
+      .from(cartItems)
+      .where(eq(cartItems.cartId, guestCart.id));
+
+    for (const item of guestItems) {
+      const [existing] = await db
+        .select({ id: cartItems.id, quantity: cartItems.quantity })
+        .from(cartItems)
+        .where(
+          and(
+            eq(cartItems.cartId, userCart.id),
+            eq(cartItems.productVariantId, item.productVariantId),
+          ),
+        )
+        .limit(1);
+
+      if (existing) {
+        await db
+          .update(cartItems)
+          .set({ quantity: existing.quantity + item.quantity })
+          .where(eq(cartItems.id, existing.id));
+      } else {
+        await db.insert(cartItems).values({
+          cartId:           userCart.id,
+          productVariantId: item.productVariantId,
+          quantity:         item.quantity,
+        });
+      }
+    }
+
+    // ── Delete guest cart (cascades to its cart_items) ──────────────────
+    await db.delete(carts).where(eq(carts.id, guestCart.id));
+  }
 
   // Clean up: remove guest record and cookie
   await db.delete(guest).where(eq(guest.id, guestRecord.id));

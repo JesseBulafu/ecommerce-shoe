@@ -98,6 +98,13 @@ function dbProductToMock(db: ProductDetail): MockProduct {
   const promoText =
     discountPct && discountPct > 0 ? `Extra ${discountPct}% off w/ sale` : null;
 
+  // ── Variant map: "ColorName:SizeName" → real DB variant UUID ────────────
+  const variantMap: Record<string, string> = {};
+  for (const v of db.variants) {
+    const key = `${v.color.name}:${v.size.name}`;
+    variantMap[key] = v.id;
+  }
+
   return {
     id: db.id,
     name: db.name,
@@ -112,6 +119,7 @@ function dbProductToMock(db: ProductDetail): MockProduct {
     styleCode: db.variants[0]?.sku ?? "",
     variants: variants.length > 0 ? variants : [{ id: "v-0", color: "Default", images: fallbackImages }],
     sizes: sizes.length > 0 ? sizes : [],
+    variantMap,
   };
 }
 

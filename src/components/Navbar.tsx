@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useCartStore } from "@/store/cart";
 
 const navLinks = [
   { label: "Men", href: "/products?gender=men" },
@@ -14,6 +15,7 @@ const navLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const totalItems = useCartStore((s) => s.totalItems());
 
   return (
     <header className="sticky top-0 z-50 bg-light-100 border-b border-light-300">
@@ -60,7 +62,7 @@ export default function Navbar() {
             href="/cart"
             className="text-body-medium font-jost text-dark-900 transition hover:text-dark-700"
           >
-            My Cart (2)
+            My Cart ({totalItems})
           </Link>
         </div>
 
@@ -118,7 +120,7 @@ export default function Navbar() {
               className="text-body-medium font-jost text-dark-900"
               onClick={() => setMobileOpen(false)}
             >
-              My Cart (2)
+              My Cart ({totalItems})
             </Link>
           </div>
         </div>

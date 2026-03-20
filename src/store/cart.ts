@@ -1,16 +1,29 @@
 import { create } from "zustand";
-import type { ProductVariant } from "@/db/schema";
 
-interface CartItem {
-  variant: ProductVariant;
-  quantity: number;
-}
+/** Enriched cart line item — contains all display info so the UI never needs
+ *  extra DB lookups. Populated by the server actions in lib/actions/cart.ts. */
+export type CartLineItem = {
+  cartItemId: string;
+  variantId:  string;
+  productId:  string;
+  name:       string;
+  description: string;
+  price:      number;
+  salePrice:  number | null;
+  image:      string | null;
+  sizeName:   string;
+  colorName:  string;
+  quantity:   number;
+};
 
 interface CartStore {
-  items: CartItem[];
-  addItem: (variant: ProductVariant) => void;
-  removeItem: (variantId: string) => void;
-  clearCart: () => void;
+  items: CartLineItem[];
+  /** Replace the entire cart (used by CartProvider on initial hydration and after every mutation). */
+  setItems: (items: CartLineItem[]) => void;
+  /** Optimistic quantity update — also removes the item when quantity < 1. */
+  updateItemQuantity: (cartItemId: string, quantity: number) => void;
+  removeItem: (cartItemId: string) => void;
+  clearItems: () => void;
   totalItems: () => number;
   totalPrice: () => number;
 }
@@ -18,33 +31,30 @@ interface CartStore {
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
 
-  addItem: (variant) =>
-    set((state) => {
-      const existing = state.items.find((i) => i.variant.id === variant.id);
-      if (existing) {
-        return {
-          items: state.items.map((i) =>
-            i.variant.id === variant.id
-              ? { ...i, quantity: i.quantity + 1 }
-              : i
-          ),
-        };
-      }
-      return { items: [...state.items, { variant, quantity: 1 }] };
-    }),
+  setItems: (items) => set({ items }),
 
-  removeItem: (variantId) =>
+  updateItemQuantity: (cartItemId, quantity) =>
     set((state) => ({
-      items: state.items.filter((i) => i.variant.id !== variantId),
+      items:
+        quantity < 1
+          ? state.items.filter((i) => i.cartItemId !== cartItemId)
+          : state.items.map((i) =>
+              i.cartItemId === cartItemId ? { ...i, quantity } : i,
+            ),
     })),
 
-  clearCart: () => set({ items: [] }),
+  removeItem: (cartItemId) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.cartItemId !== cartItemId),
+    })),
+
+  clearItems: () => set({ items: [] }),
 
   totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
   totalPrice: () =>
     get().items.reduce(
-      (sum, i) => sum + Number(i.variant.price) * i.quantity,
-      0
+      (sum, i) => sum + (i.salePrice ?? i.price) * i.quantity,
+      0,
     ),
 }));
