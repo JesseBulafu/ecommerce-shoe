@@ -509,6 +509,18 @@ export async function submitReview(
   }
   const trimmed = comment.trim().slice(0, 2000);
 
+  // Profanity check
+  if (trimmed) {
+    const { containsProfanity } = await import("@/lib/utils/profanity");
+    const flagged = containsProfanity(trimmed);
+    if (flagged) {
+      return {
+        success: false,
+        error: "Your review contains inappropriate language. Please keep it professional.",
+      };
+    }
+  }
+
   // Check for duplicate review
   const [existing] = await db
     .select({ id: reviews.id })
