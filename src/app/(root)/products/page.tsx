@@ -142,6 +142,7 @@ export default async function ProductsPage({
               {products.map((product) => (
                 <Card
                   key={product.id}
+                  href={`/products/${product.id}`}
                   image={product.image ?? "/shoes/shoe-1.jpg"}
                   title={product.name}
                   description={`${product.description} · ${product.colorCount} colour${product.colorCount !== 1 ? "s" : ""}`}

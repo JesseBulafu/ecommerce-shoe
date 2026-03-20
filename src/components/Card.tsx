@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface CardProps {
   image: string;
@@ -6,6 +7,8 @@ interface CardProps {
   description?: string;
   price: string;
   badge?: string;
+  /** When provided, the entire card becomes a link to this URL. */
+  href?: string;
 }
 
 export default function Card({
@@ -14,9 +17,22 @@ export default function Card({
   description,
   price,
   badge,
+  href,
 }: CardProps) {
+  const Wrapper = href
+    ? ({ children }: { children: React.ReactNode }) => (
+        <Link href={href} className="group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm transition hover:shadow-md">
+          {children}
+        </Link>
+      )
+    : ({ children }: { children: React.ReactNode }) => (
+        <div className="group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm transition hover:shadow-md">
+          {children}
+        </div>
+      );
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm transition hover:shadow-md">
+    <Wrapper>
       {/* Image container */}
       <div className="relative aspect-square w-full overflow-hidden bg-light-200">
         {badge && (
@@ -47,6 +63,6 @@ export default function Card({
           {price}
         </span>
       </div>
-    </div>
+    </Wrapper>
   );
 }

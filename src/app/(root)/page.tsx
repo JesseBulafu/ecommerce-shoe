@@ -2,52 +2,62 @@ import Card from "@/components/Card";
 
 const sampleShoes = [
   {
-    image: "/shoes/shoe-1.jpg",
+    id: "2",
+    image: "/shoes/shoe-5.avif",
     title: "Nike Air Force 1 Mid '07",
     description: "Men's Shoes",
-    price: "$130.00",
+    price: "$98.30",
     badge: "Best Seller",
   },
   {
-    image: "/shoes/shoe-2.webp",
+    id: "4",
+    image: "/shoes/shoe-11.avif",
     title: "Nike Dunk Low Retro",
     description: "Men's Shoes",
-    price: "$110.00",
+    price: "$98.30",
+    badge: "Extra 10% off",
   },
   {
-    image: "/shoes/shoe-3.webp",
-    title: "Nike Air Max 90",
+    id: "1",
+    image: "/shoes/shoe-7.avif",
+    title: "Nike Air Max 90 SE",
     description: "Women's Shoes",
-    price: "$130.00",
-    badge: "Best Seller",
-  },
-  {
-    image: "/shoes/shoe-4.webp",
-    title: "Nike Pegasus 41",
-    description: "Men's Running Shoes",
     price: "$140.00",
+    badge: "Highly Rated",
   },
   {
-    image: "/shoes/shoe-5.avif",
+    id: "5",
+    image: "/shoes/shoe-6.avif",
     title: "Nike Blazer Mid '77",
     description: "Men's Shoes",
     price: "$105.00",
   },
   {
-    image: "/shoes/shoe-6.avif",
+    id: "3",
+    image: "/shoes/shoe-8.avif",
+    title: "Nike Court Vision Low Next Nature",
+    description: "Men's Shoes",
+    price: "$98.30",
+    badge: "Extra 20% off",
+  },
+  {
+    id: "1",
+    image: "/shoes/shoe-9.avif",
     title: "Nike Air Max 270",
     description: "Women's Shoes",
     price: "$160.00",
     badge: "Best Seller",
   },
   {
-    image: "/shoes/shoe-7.avif",
+    id: "5",
+    image: "/shoes/shoe-14.avif",
     title: "Nike ZoomX Vaporfly",
     description: "Road Racing Shoes",
     price: "$260.00",
   },
   {
-    image: "/shoes/shoe-8.avif",
+    id: "2",
+    image: "/shoes/shoe-13.avif",
     title: "Nike Air Jordan 1 Retro",
     description: "Men's Shoes",
     price: "$180.00",
@@ -66,8 +76,8 @@ export default function Home() {
           Popular Right Now
         </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {sampleShoes.map((shoe) => (
-            <Card key={shoe.title} {...shoe} />
+          {sampleShoes.map((shoe, i) => (
+            <Card key={`${shoe.id}-${i}`} href={`/products/${shoe.id}`} {...shoe} />
           ))}
         </div>
       </section>
