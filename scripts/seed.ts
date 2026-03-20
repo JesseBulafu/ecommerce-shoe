@@ -244,28 +244,39 @@ async function seed() {
   }
   console.log(`   Copied ${copied}/${shoeImages.length} images\n`);
 
-  // Clear existing ecommerce data (respecting FK order)
+  // Clear existing ecommerce data (respecting FK order).
+  // Uses try/catch so a first-run on an empty DB doesn't abort the seed.
   console.log("🗑️  Clearing existing data...");
-  await db.delete(schema.productCollections);
-  await db.delete(schema.cartItems);
-  await db.delete(schema.orderItems);
-  await db.delete(schema.payments);
-  await db.delete(schema.orders);
-  await db.delete(schema.carts);
-  await db.delete(schema.reviews);
-  await db.delete(schema.wishlists);
-  await db.delete(schema.coupons);
-  await db.delete(schema.addresses);
-  await db.delete(schema.productImages);
-  await db.delete(schema.productVariants);
-  await db.delete(schema.products);
-  await db.delete(schema.productCollections).catch(() => {});
-  await db.delete(schema.collections);
-  await db.delete(schema.categories);
-  await db.delete(schema.brands);
-  await db.delete(schema.genders);
-  await db.delete(schema.colors);
-  await db.delete(schema.sizes);
+  const clearTables = [
+    schema.productCollections,
+    schema.cartItems,
+    schema.orderItems,
+    schema.payments,
+    schema.orders,
+    schema.carts,
+    schema.reviews,
+    schema.wishlists,
+    schema.coupons,
+    schema.addresses,
+    schema.productImages,
+    schema.productVariants,
+    schema.products,
+    schema.collections,
+    schema.categories,
+    schema.brands,
+    schema.genders,
+    schema.colors,
+    schema.sizes,
+  ] as const;
+
+  for (const table of clearTables) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await db.delete(table as any).catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Ignore "table does not exist" errors on first run
+      if (!msg.includes("does not exist")) throw err;
+    });
+  }
   console.log("   Done\n");
 
   // Seed genders

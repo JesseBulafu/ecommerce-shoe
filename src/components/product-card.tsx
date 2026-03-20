@@ -1,10 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import type { Product } from "@/db/schema";
+import type { ProductVariant } from "@/db/schema";
 import { useCartStore } from "@/store/cart";
 
-export function ProductCard({ product }: { product: Product }) {
+/** Display-ready data shape passed to the card. Decouples UI from raw DB rows. */
+export interface ProductCardData {
+  name: string;
+  description: string;
+  imageUrl: string;
+  categoryName: string;
+  defaultVariant: ProductVariant;
+}
+
+export function ProductCard({ product }: { product: ProductCardData }) {
   const addItem = useCartStore((s) => s.addItem);
 
   return (
@@ -12,7 +21,7 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Image */}
       <div className="relative aspect-square w-full bg-gray-100">
         <Image
-          src={product.image}
+          src={product.imageUrl}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -23,7 +32,7 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Info */}
       <div className="flex flex-1 flex-col gap-2 p-4">
         <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-          {product.category}
+          {product.categoryName}
         </span>
         <h2 className="text-lg font-bold leading-tight">{product.name}</h2>
         <p className="line-clamp-2 text-sm text-gray-500">
@@ -31,9 +40,11 @@ export function ProductCard({ product }: { product: Product }) {
         </p>
 
         <div className="mt-auto flex items-center justify-between pt-4">
-          <span className="text-xl font-bold">${product.price}</span>
+          <span className="text-xl font-bold">
+            ${Number(product.defaultVariant.price).toFixed(2)}
+          </span>
           <button
-            onClick={() => addItem(product)}
+            onClick={() => addItem(product.defaultVariant)}
             className="cursor-pointer rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
           >
             Add to Cart
