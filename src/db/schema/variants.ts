@@ -39,6 +39,8 @@ export const productVariants = pgTable("product_variants", {
   index("idx_variants_size_id").on(t.sizeId),
   index("idx_variants_in_stock").on(t.inStock),
   index("idx_variants_price").on(t.price),
+  // Compound index for color-specific image lookups
+  index("idx_variants_color_product").on(t.colorId, t.productId),
 ]);
 
 export const productImages = pgTable("product_images", {

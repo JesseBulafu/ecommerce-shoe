@@ -30,6 +30,9 @@ export const products = pgTable("products", {
   index("idx_products_brand_id").on(t.brandId),
   index("idx_products_is_published").on(t.isPublished),
   index("idx_products_created_at").on(t.createdAt),
+  // Compound indexes for common storefront filter combos
+  index("idx_products_brand_published").on(t.brandId, t.isPublished),
+  index("idx_products_category_published").on(t.categoryId, t.isPublished),
   // Partial index: only published, non-deleted products are queried in storefront
   index("idx_products_storefront").on(t.categoryId, t.genderId).where(sql`is_published = true AND deleted_at IS NULL`),
 ]);

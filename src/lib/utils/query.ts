@@ -146,3 +146,126 @@ export function isParamActive(
   const arr = Array.isArray(existing) ? existing : [existing];
   return arr.includes(value);
 }
+
+// ---------------------------------------------------------------------------
+// Server-action param types & parsers
+// ---------------------------------------------------------------------------
+
+export type SortBy = "featured" | "newest" | "price_asc" | "price_desc";
+
+/** Typed input for getAllProducts() / getProduct() server actions. */
+export type ProductQueryParams = {
+  search?: string;
+  gender?: string[];
+  color?: string[];
+  size?: string[];
+  brand?: string[];
+  category?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  sortBy?: SortBy;
+  page?: number;
+  limit?: number;
+};
+
+/**
+ * Maps raw Next.js `searchParams` (after `await searchParams`) to a fully
+ * typed ProductQueryParams ready to pass to getAllProducts().
+ *
+ * Handles:
+ * - Multi-value arrays (gender, color, size, brand, category)
+ * - Legacy price-range strings ("50-150") → numeric priceMin / priceMax
+ * - Explicit priceMin / priceMax overrides
+ * - sortBy validation (only known values are forwarded)
+ * - Safe coercion of page / limit integers
+ */
+export function parseFilterParams(
+  searchParams: Record<string, string | string[] | undefined>
+): ProductQueryParams {
+  const toArray = (v: string | string[] | undefined): string[] | undefined => {
+    if (!v) return undefined;
+    const arr = Array.isArray(v) ? v : [v];
+    return arr.length > 0 ? arr : undefined;
+  };
+
+  const toPositiveInt = (
+    v: string | string[] | undefined,
+    fallback: number
+  ): number => {
+    const raw = Array.isArray(v) ? v[0] : v;
+    const n = parseInt(raw ?? "", 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  };
+
+  // Convert legacy price-range strings ("0-50", "50-100") → overall min/max
+  const priceRanges = toArray(searchParams.price);
+  let priceMin: number | undefined;
+  let priceMax: number | undefined;
+  if (priceRanges?.length) {
+    const mins: number[] = [];
+    const maxes: number[] = [];
+    for (const range of priceRanges) {
+      const [lo, hi] = range.split("-").map(Number);
+      if (Number.isFinite(lo)) mins.push(lo);
+      if (Number.isFinite(hi)) maxes.push(hi);
+    }
+    if (mins.length) priceMin = Math.min(...mins);
+    if (maxes.length) priceMax = Math.max(...maxes);
+  }
+
+  // Allow explicit ?priceMin=X / ?priceMax=X to override range strings
+  const explicitMin = parseFloat(
+    Array.isArray(searchParams.priceMin)
+      ? searchParams.priceMin[0]
+      : (searchParams.priceMin ?? "")
+  );
+  const explicitMax = parseFloat(
+    Array.isArray(searchParams.priceMax)
+      ? searchParams.priceMax[0]
+      : (searchParams.priceMax ?? "")
+  );
+  if (Number.isFinite(explicitMin)) priceMin = explicitMin;
+  if (Number.isFinite(explicitMax)) priceMax = explicitMax;
+
+  const sortRaw =
+    typeof searchParams.sort === "string" ? searchParams.sort : undefined;
+  const validSorts: SortBy[] = ["featured", "newest", "price_asc", "price_desc"];
+  const sortBy = validSorts.includes(sortRaw as SortBy)
+    ? (sortRaw as SortBy)
+    : undefined;
+
+  const rawSearch =
+    typeof searchParams.search === "string"
+      ? searchParams.search.trim()
+      : undefined;
+
+  return {
+    search: rawSearch || undefined,
+    gender: toArray(searchParams.gender),
+    color: toArray(searchParams.color),
+    size: toArray(searchParams.size),
+    brand: toArray(searchParams.brand),
+    category: toArray(searchParams.category),
+    priceMin,
+    priceMax,
+    sortBy,
+    page: toPositiveInt(searchParams.page, 1),
+    limit: toPositiveInt(searchParams.limit, 24),
+  };
+}
+
+/**
+ * Normalises a ProductQueryParams object: applies defaults for sortBy/page/limit
+ * and clamps limit to [1, 100]. Pass the result to getAllProducts() to guarantee
+ * consistent behaviour regardless of how params were assembled.
+ */
+export function buildProductQueryObject(
+  params: ProductQueryParams
+): ProductQueryParams {
+  return {
+    ...params,
+    sortBy: params.sortBy ?? "newest",
+    page: Math.max(1, params.page ?? 1),
+    limit: Math.min(Math.max(1, params.limit ?? 24), 100),
+  };
+}
