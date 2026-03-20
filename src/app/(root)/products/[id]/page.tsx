@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 import ProductGallery from "@/components/ProductGallery";
@@ -162,15 +161,19 @@ export default async function ProductDetailPage({
           className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
         >
           <Link
-            href="/products"
-            className="flex items-center gap-1 text-caption text-dark-700 hover:text-dark-900 transition"
+            href="/"
+            className="text-caption text-dark-700 hover:text-dark-900 transition"
           >
-            <ChevronLeft size={14} aria-hidden />
-            Back to Products
+            Home
           </Link>
-          <span className="text-caption text-dark-500" aria-hidden>
-            /
-          </span>
+          <span className="text-caption text-dark-500" aria-hidden>/</span>
+          <Link
+            href="/products"
+            className="text-caption text-dark-700 hover:text-dark-900 transition"
+          >
+            Products
+          </Link>
+          <span className="text-caption text-dark-500" aria-hidden>/</span>
           <span className="text-caption text-dark-900 truncate max-w-50" aria-current="page">
             {product.name}
           </span>
