@@ -18,7 +18,13 @@ export default async function RootGroupLayout({
   return (
     <>
       <CartProvider items={cartItems} />
-      <Navbar isLoggedIn={isLoggedIn} isAdmin={adminUser} />
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        isAdmin={adminUser}
+        userName={session?.user?.name}
+        userEmail={session?.user?.email}
+        userImage={session?.user?.image}
+      />
       <main className="flex-1">{children}</main>
       <ScrollReveal distance={40} duration={1}>
         <Footer />

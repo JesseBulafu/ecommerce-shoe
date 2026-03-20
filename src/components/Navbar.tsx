@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useCartStore } from "@/store/cart";
 import { useTheme } from "@/components/ThemeProvider";
+import ProfileDropdown from "@/components/ProfileDropdown";
 
 function ArstraLogo({ className }: { className?: string }) {
   return (
@@ -68,9 +69,12 @@ function ThemeToggle() {
 interface NavbarProps {
   isLoggedIn?: boolean;
   isAdmin?: boolean;
+  userName?: string | null;
+  userEmail?: string | null;
+  userImage?: string | null;
 }
 
-export default function Navbar({ isLoggedIn = false, isAdmin = false }: NavbarProps) {
+export default function Navbar({ isLoggedIn = false, isAdmin = false, userName, userEmail, userImage }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
   const headerRef = useRef<HTMLElement>(null);
@@ -129,28 +133,27 @@ export default function Navbar({ isLoggedIn = false, isAdmin = false }: NavbarPr
           >
             Search
           </button>
-          {isLoggedIn && (
-            <Link
-              href="/orders"
-              className="text-body-medium font-jost text-dark-900 transition hover:text-dark-700"
-            >
-              My Orders
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="text-caption font-jost text-light-100 bg-dark-900 px-3 py-1.5 rounded-full transition hover:bg-dark-700"
-            >
-              Admin
-            </Link>
-          )}
           <Link
             href="/cart"
             className="text-body-medium font-jost text-dark-900 transition hover:text-dark-700"
           >
             My Cart ({totalItems})
           </Link>
+          {isLoggedIn && userEmail ? (
+            <ProfileDropdown
+              userName={userName ?? null}
+              userEmail={userEmail}
+              userImage={userImage ?? null}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <Link
+              href="/sign-in"
+              className="text-caption font-jost text-light-100 bg-dark-900 px-4 py-1.5 rounded-full transition hover:bg-dark-700"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile right: theme toggle + hamburger */}
@@ -205,24 +208,6 @@ export default function Navbar({ isLoggedIn = false, isAdmin = false }: NavbarPr
             >
               Search
             </button>
-            {isLoggedIn && (
-              <Link
-                href="/orders"
-                className="text-body-medium font-jost text-dark-900"
-                onClick={() => setMobileOpen(false)}
-              >
-                My Orders
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="text-body-medium font-jost text-light-100 bg-dark-900 px-3 py-1.5 rounded-full text-center"
-                onClick={() => setMobileOpen(false)}
-              >
-                Admin
-              </Link>
-            )}
             <Link
               href="/cart"
               className="text-body-medium font-jost text-dark-900"
@@ -230,6 +215,24 @@ export default function Navbar({ isLoggedIn = false, isAdmin = false }: NavbarPr
             >
               My Cart ({totalItems})
             </Link>
+            {isLoggedIn && userEmail ? (
+              <div onClick={() => setMobileOpen(false)}>
+                <ProfileDropdown
+                  userName={userName ?? null}
+                  userEmail={userEmail}
+                  userImage={userImage ?? null}
+                  isAdmin={isAdmin}
+                />
+              </div>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="text-body-medium font-jost text-light-100 bg-dark-900 px-3 py-1.5 rounded-full text-center"
+                onClick={() => setMobileOpen(false)}
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}
