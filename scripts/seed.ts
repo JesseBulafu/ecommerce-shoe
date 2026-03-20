@@ -12,7 +12,12 @@ const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
 const SHOES_DIR = path.join(process.cwd(), "public", "shoes");
-const UPLOADS_DIR = path.join(process.cwd(), "static", "uploads", "shoes");
+
+// Verify the public/shoes directory exists at startup
+if (!fs.existsSync(SHOES_DIR)) {
+  console.error(`❌ public/shoes directory not found at ${SHOES_DIR}`);
+  process.exit(1);
+}
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 
@@ -228,21 +233,14 @@ const shoeImages = [
 async function seed() {
   console.log("🌱 Starting database seed...\n");
 
-  // Copy images to static/uploads
-  console.log("📸 Copying shoe images to static/uploads/shoes...");
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  let copied = 0;
+  // Verify shoe images are present in public/shoes
+  console.log("📸 Verifying shoe images in public/shoes...");
+  let found = 0;
   for (const img of shoeImages) {
-    const src = path.join(SHOES_DIR, img);
-    const dest = path.join(UPLOADS_DIR, img);
-    if (fs.existsSync(src)) {
-      fs.copyFileSync(src, dest);
-      copied++;
-    } else {
-      console.warn(`   ⚠ Missing source image: ${src}`);
-    }
+    if (fs.existsSync(path.join(SHOES_DIR, img))) found++;
+    else console.warn(`   ⚠ Missing image: public/shoes/${img}`);
   }
-  console.log(`   Copied ${copied}/${shoeImages.length} images\n`);
+  console.log(`   Found ${found}/${shoeImages.length} images\n`);
 
   // Clear existing ecommerce data (respecting FK order).
   // Uses try/catch so a first-run on an empty DB doesn't abort the seed.
@@ -366,7 +364,7 @@ async function seed() {
     );
 
     const productImage = shoeImages[i % shoeImages.length];
-    const imageUrl = `/uploads/shoes/${productImage}`;
+    const imageUrl = `/shoes/${productImage}`;
 
     // Primary product image
     await db.insert(schema.productImages).values({
@@ -383,7 +381,7 @@ async function seed() {
         const colorImageIdx = (i + ci) % shoeImages.length;
         await db.insert(schema.productImages).values({
           productId: product.id,
-          url: `/uploads/shoes/${shoeImages[colorImageIdx]}`,
+          url: `/shoes/${shoeImages[colorImageIdx]}`,
           sortOrder: ci + 1,
           isPrimary: false,
         });
