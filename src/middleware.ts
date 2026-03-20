@@ -5,7 +5,7 @@ const AUTH_COOKIE_NAME = "better-auth.session_token";
 const GUEST_SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
 /** Routes that require authentication */
-const PROTECTED_ROUTES = ["/checkout"];
+const PROTECTED_ROUTES = ["/checkout", "/orders", "/admin"];
 
 /** Routes that authenticated users should not access */
 const AUTH_ROUTES = ["/sign-in", "/sign-up"];

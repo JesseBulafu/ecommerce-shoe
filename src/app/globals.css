@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     /* Dark shades */
@@ -57,6 +59,18 @@
     --text-footnote: 12px;
     --text-footnote--line-height: 18px;
     --text-footnote--font-weight: 400;
+  }
+
+  /* Dark mode overrides */
+  .dark {
+    --color-dark-900: #f0f0f0;
+    --color-dark-700: #b0b0b0;
+    --color-dark-500: #808080;
+
+    --color-light-100: #0a0a0a;
+    --color-light-200: #141414;
+    --color-light-300: #222222;
+    --color-light-400: #333333;
   }
 }
 

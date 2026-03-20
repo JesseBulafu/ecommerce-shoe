@@ -7,6 +7,7 @@ export const user = pgTable("user", {
   email: text("email").unique().notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  role: text("role").notNull().default("customer"), // "customer" | "admin"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   // Soft-delete: set instead of destroying user data
@@ -15,6 +16,7 @@ export const user = pgTable("user", {
   // Partial index: only index active (non-deleted) users
   index("idx_user_active").on(t.id).where(sql`deleted_at IS NULL`),
   index("idx_user_created_at").on(t.createdAt),
+  index("idx_user_role").on(t.role),
 ]);
 
 export type User = typeof user.$inferSelect;

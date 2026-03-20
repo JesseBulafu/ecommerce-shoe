@@ -19,10 +19,12 @@ export default function CardHover({
   const onEnter = useCallback(() => {
     if (!ref.current) return;
     gsap.to(ref.current, {
-      y: -8,
-      scale: 1.02,
-      boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
-      duration: 0.35,
+      y: -14,
+      scale: 1.03,
+      rotationX: 2,
+      rotationY: -1,
+      boxShadow: "0 30px 60px rgba(0,0,0,0.18), 0 10px 20px rgba(0,0,0,0.08)",
+      duration: 0.4,
       ease: "power2.out",
     });
   }, []);
@@ -32,8 +34,10 @@ export default function CardHover({
     gsap.to(ref.current, {
       y: 0,
       scale: 1,
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      duration: 0.35,
+      rotationX: 0,
+      rotationY: 0,
+      boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+      duration: 0.4,
       ease: "power2.out",
     });
   }, []);
@@ -44,7 +48,7 @@ export default function CardHover({
       className={className}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      style={{ willChange: "transform" }}
+      style={{ willChange: "transform", perspective: "800px" }}
     >
       {children}
     </div>

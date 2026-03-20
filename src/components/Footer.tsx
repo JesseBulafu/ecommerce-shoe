@@ -1,6 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 
+function ArstraLogo({ className }: { className?: string }) {
+  return (
+    <svg width="140" height="32" viewBox="0 0 180 40" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 32 L18 22 L28 32" stroke="#7C3AED" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M18 22 L18 8 L34 8" stroke="#7C3AED" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M34 8 L26 16" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <text x="46" y="28" fontFamily="system-ui, -apple-system, 'Segoe UI', sans-serif" fontSize="22" fontWeight="800" letterSpacing="2" fill="currentColor">ARSTRA</text>
+    </svg>
+  );
+}
+
 const footerColumns = [
   {
     title: "Featured",
@@ -29,7 +40,7 @@ const bottomLinks = [
   { label: "Guides", href: "/guides" },
   { label: "Terms of Sale", href: "/terms-of-sale" },
   { label: "Terms of Use", href: "/terms-of-use" },
-  { label: "Nike Privacy Policy", href: "/privacy" },
+  { label: "Arstra Privacy Policy", href: "/privacy" },
 ];
 
 const socialIcons = [
@@ -46,15 +57,9 @@ export default function Footer() {
         <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
           {/* Logo + columns wrapper */}
           <div className="flex flex-col gap-10 sm:flex-row sm:gap-16">
-            {/* Nike logo */}
-            <Link href="/" aria-label="Home">
-              <Image
-                src="/logo.svg"
-                alt="Nike"
-                width={70}
-                height={24}
-                className="brightness-0 invert"
-              />
+            {/* Arstra logo */}
+            <Link href="/" aria-label="Home" className="text-light-100">
+              <ArstraLogo />
             </Link>
 
             {/* Link columns */}
@@ -107,8 +112,8 @@ export default function Footer() {
       <div className="border-t border-dark-700">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
           <p className="text-footnote font-jost text-dark-500">
-            <span className="mr-2">📍 Croatia</span>
-            &copy; {new Date().getFullYear()} Nike, Inc. All Rights Reserved
+            <span className="mr-2">📍 Uganda</span>
+            &copy; {new Date().getFullYear()} Arstra, Inc. All Rights Reserved
           </p>
           <ul className="flex flex-wrap items-center gap-4 sm:gap-6">
             {bottomLinks.map((link) => (

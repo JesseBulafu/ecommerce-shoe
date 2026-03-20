@@ -25,7 +25,7 @@ export default function Card({
   const inner = (
     <>
       {/* Image container */}
-      <div className="relative aspect-square w-full overflow-hidden bg-light-200">
+      <div className="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]">
         {badge && (
           <span className="absolute top-3 left-3 z-10 rounded bg-red px-2 py-0.5 text-caption font-jost text-light-100">
             {badge}
@@ -42,22 +42,22 @@ export default function Card({
 
       {/* Content */}
       <div className="flex flex-1 flex-col gap-1 p-4">
-        <h3 className="text-body-medium font-jost text-dark-900 leading-tight">
+        <h3 className="text-body-medium font-jost text-[#111111] leading-tight">
           {title}
         </h3>
         {description && (
-          <p className="text-caption font-jost text-dark-700 line-clamp-2">
+          <p className="text-caption font-jost text-[#757575] line-clamp-2">
             {description}
           </p>
         )}
-        <span className="mt-2 text-body-medium font-jost text-dark-900">
+        <span className="mt-2 text-body-medium font-jost text-[#111111]">
           {price}
         </span>
       </div>
     </>
   );
 
-  const cardClasses = "group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm";
+  const cardClasses = "group flex flex-col overflow-hidden rounded-2xl bg-white border border-[#e5e5e5] shadow-[0_8px_30px_rgba(0,0,0,0.08)]";
 
   return (
     <CardHover>

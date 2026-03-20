@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Lock, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Lock, ArrowLeft, Truck, CreditCard, MapPin, Phone } from "lucide-react";
 import type { CartLineItem } from "@/store/cart";
 import { formatPrice, DELIVERY_FEE } from "@/lib/utils/currency";
-import { initiateCheckout } from "@/lib/actions/checkout";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
+import { initiateCheckout, initiateCodCheckout } from "@/lib/actions/checkout";
+import type { ShippingAddressInput } from "@/lib/actions/checkout";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -50,6 +50,8 @@ function OrderItemRow({ item }: { item: CartLineItem }) {
   );
 }
 
+type PaymentMethod = "flutterwave" | "cod";
+
 // ── Main client component ─────────────────────────────────────────────────────
 
 interface CheckoutClientProps {
@@ -58,8 +60,19 @@ interface CheckoutClientProps {
 }
 
 export default function CheckoutClient({ items, user }: CheckoutClientProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+
+  // Address form state
+  const [address, setAddress] = useState<ShippingAddressInput>({
+    line1: "",
+    streetName: "",
+    city: "",
+    state: "",
+    phone: "",
+  });
 
   const subtotal = items.reduce(
     (sum, i) => sum + (i.salePrice ?? i.price) * i.quantity,
@@ -68,18 +81,42 @@ export default function CheckoutClient({ items, user }: CheckoutClientProps) {
   const totalAmount = subtotal + DELIVERY_FEE;
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
+  const handleAddressChange = (field: keyof ShippingAddressInput, value: string) => {
+    setAddress((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handlePay = () => {
     setError(null);
-    startTransition(async () => {
-      const result = await initiateCheckout();
 
-      if (!result.success) {
-        setError(result.error ?? "Something went wrong.");
+    if (paymentMethod === "cod") {
+      // Validate address fields client-side
+      if (!address.line1 || !address.streetName || !address.city || !address.state || !address.phone) {
+        setError("Please fill in all delivery address fields.");
         return;
       }
+      if (address.phone.length < 10) {
+        setError("Phone number must be at least 10 digits.");
+        return;
+      }
+    }
 
-      if (result.paymentUrl) {
-        window.location.href = result.paymentUrl;
+    startTransition(async () => {
+      if (paymentMethod === "flutterwave") {
+        const result = await initiateCheckout();
+        if (!result.success) {
+          setError(result.error ?? "Something went wrong.");
+          return;
+        }
+        if (result.paymentUrl) {
+          window.location.href = result.paymentUrl;
+        }
+      } else {
+        const result = await initiateCodCheckout(address);
+        if (!result.success) {
+          setError(result.error ?? "Something went wrong.");
+          return;
+        }
+        router.push(`/orders/${result.orderId}`);
       }
     });
   };
@@ -112,6 +149,140 @@ export default function CheckoutClient({ items, user }: CheckoutClientProps) {
               <p>{user.email}</p>
             </div>
           </div>
+
+          {/* Payment method selection */}
+          <div className="rounded-lg border border-light-300 p-5">
+            <h2 className="text-body-medium font-jost text-dark-900 mb-4">
+              Payment Method
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("cod")}
+                className={`flex items-center gap-3 rounded-lg border-2 p-4 transition ${
+                  paymentMethod === "cod"
+                    ? "border-dark-900 bg-light-200"
+                    : "border-light-300 hover:border-dark-500"
+                }`}
+              >
+                <Truck size={22} className="text-dark-900 shrink-0" />
+                <div className="text-left">
+                  <p className="text-body-medium font-jost text-dark-900">
+                    Cash on Delivery
+                  </p>
+                  <p className="text-footnote font-jost text-dark-700">
+                    Pay when you receive your order
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("flutterwave")}
+                className={`flex items-center gap-3 rounded-lg border-2 p-4 transition ${
+                  paymentMethod === "flutterwave"
+                    ? "border-dark-900 bg-light-200"
+                    : "border-light-300 hover:border-dark-500"
+                }`}
+              >
+                <CreditCard size={22} className="text-dark-900 shrink-0" />
+                <div className="text-left">
+                  <p className="text-body-medium font-jost text-dark-900">
+                    Pay Online
+                  </p>
+                  <p className="text-footnote font-jost text-dark-700">
+                    Mobile Money / Card via Flutterwave
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Shipping address form (shown for COD) */}
+          {paymentMethod === "cod" && (
+            <div className="rounded-lg border border-light-300 p-5">
+              <h2 className="text-body-medium font-jost text-dark-900 mb-4 flex items-center gap-2">
+                <MapPin size={18} aria-hidden />
+                Delivery Address
+              </h2>
+              <p className="text-footnote text-dark-700 mb-4">
+                Our delivery guy will bring your order to this address. Please be as specific as possible.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="phone" className="text-caption font-jost text-dark-900 mb-1 flex items-center gap-1.5">
+                    <Phone size={14} aria-hidden />
+                    Phone Number *
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    placeholder="e.g. 0771234567"
+                    value={address.phone}
+                    onChange={(e) => handleAddressChange("phone", e.target.value)}
+                    className="w-full rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body font-jost text-dark-900 placeholder:text-dark-500 focus:outline-none focus:ring-2 focus:ring-dark-900"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="line1" className="text-caption font-jost text-dark-900 mb-1 block">
+                    Address / Area *
+                  </label>
+                  <input
+                    id="line1"
+                    type="text"
+                    placeholder="e.g. Wandegeya, Kampala"
+                    value={address.line1}
+                    onChange={(e) => handleAddressChange("line1", e.target.value)}
+                    className="w-full rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body font-jost text-dark-900 placeholder:text-dark-500 focus:outline-none focus:ring-2 focus:ring-dark-900"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="streetName" className="text-caption font-jost text-dark-900 mb-1 block">
+                    Street Name *
+                  </label>
+                  <input
+                    id="streetName"
+                    type="text"
+                    placeholder="e.g. Bombo Road"
+                    value={address.streetName}
+                    onChange={(e) => handleAddressChange("streetName", e.target.value)}
+                    className="w-full rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body font-jost text-dark-900 placeholder:text-dark-500 focus:outline-none focus:ring-2 focus:ring-dark-900"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="city" className="text-caption font-jost text-dark-900 mb-1 block">
+                      City *
+                    </label>
+                    <input
+                      id="city"
+                      type="text"
+                      placeholder="e.g. Kampala"
+                      value={address.city}
+                      onChange={(e) => handleAddressChange("city", e.target.value)}
+                      className="w-full rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body font-jost text-dark-900 placeholder:text-dark-500 focus:outline-none focus:ring-2 focus:ring-dark-900"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="state" className="text-caption font-jost text-dark-900 mb-1 block">
+                      District *
+                    </label>
+                    <input
+                      id="state"
+                      type="text"
+                      placeholder="e.g. Central"
+                      value={address.state}
+                      onChange={(e) => handleAddressChange("state", e.target.value)}
+                      className="w-full rounded-lg border border-light-300 bg-light-100 px-4 py-3 text-body font-jost text-dark-900 placeholder:text-dark-500 focus:outline-none focus:ring-2 focus:ring-dark-900"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Order items card */}
           <div className="rounded-lg border border-light-300 p-5">
@@ -165,13 +336,23 @@ export default function CheckoutClient({ items, user }: CheckoutClientProps) {
               onClick={handlePay}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-dark-900 px-6 py-4 text-body-medium font-jost text-light-100 hover:bg-dark-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-900 disabled:opacity-60"
             >
-              <Lock size={16} aria-hidden />
-              {isPending ? "Processing…" : "Pay with Flutterwave"}
+              {paymentMethod === "cod" ? (
+                <>
+                  <Truck size={16} aria-hidden />
+                  {isPending ? "Placing Order…" : "Place Order — Cash on Delivery"}
+                </>
+              ) : (
+                <>
+                  <Lock size={16} aria-hidden />
+                  {isPending ? "Processing…" : "Pay with Flutterwave"}
+                </>
+              )}
             </button>
 
             <p className="text-footnote text-dark-500 text-center mt-3">
-              You&apos;ll be redirected to Flutterwave&apos;s secure payment
-              page to complete your purchase.
+              {paymentMethod === "cod"
+                ? "You'll pay the delivery guy when you receive and verify your products."
+                : "You'll be redirected to Flutterwave's secure payment page."}
             </p>
           </div>
         </div>
