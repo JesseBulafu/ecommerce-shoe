@@ -56,6 +56,6 @@ export const config = {
      * - public folder assets
      * - API auth routes (Better Auth handles these)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|images/|api/auth).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|images/|api/auth|api/payment/webhook).*)",
   ],
 };

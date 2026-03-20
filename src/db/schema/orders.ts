@@ -24,6 +24,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const paymentMethodEnum = pgEnum("payment_method", [
   "stripe",
   "paypal",
+  "flutterwave",
   "cod",
 ]);
 
@@ -126,7 +127,7 @@ export const selectOrderItemSchema = z.object({
 
 export const insertPaymentSchema = z.object({
   orderId: z.string().uuid(),
-  method: z.enum(["stripe", "paypal", "cod"]),
+  method: z.enum(["stripe", "paypal", "flutterwave", "cod"]),
   status: z.enum(["initiated", "completed", "failed"]).default("initiated"),
   paidAt: z.date().nullable().optional(),
   transactionId: z.string().nullable().optional(),
@@ -135,7 +136,7 @@ export const insertPaymentSchema = z.object({
 export const selectPaymentSchema = z.object({
   id: z.string().uuid(),
   orderId: z.string().uuid(),
-  method: z.enum(["stripe", "paypal", "cod"]),
+  method: z.enum(["stripe", "paypal", "flutterwave", "cod"]),
   status: z.enum(["initiated", "completed", "failed"]),
   paidAt: z.date().nullable(),
   transactionId: z.string().nullable(),
