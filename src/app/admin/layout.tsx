@@ -8,6 +8,7 @@ function AdminSidebar() {
     { label: "Dashboard", href: "/admin" },
     { label: "Orders", href: "/admin/orders" },
     { label: "Products", href: "/admin/products" },
+    { label: "Users", href: "/admin/users" },
   ];
 
   return (

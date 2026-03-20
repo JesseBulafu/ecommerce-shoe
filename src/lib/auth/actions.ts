@@ -2,10 +2,10 @@
 
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq, lt, and } from "drizzle-orm";
+import { eq, lt, and, count } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { guest } from "@/db/schema";
+import { guest, user } from "@/db/schema";
 import { carts, cartItems } from "@/db/schema/carts";
 import { signUpSchema, signInSchema } from "./validation";
 import crypto from "crypto";
@@ -50,6 +50,23 @@ export async function signUp(formData: FormData): Promise<AuthActionResult> {
 
   if (!res || !res.user) {
     return { success: false, error: "Sign up failed. Email may already be in use." };
+  }
+
+  // Auto-promote to admin if this is the very first user (no admins exist yet)
+  const [adminCount] = await db
+    .select({ count: count() })
+    .from(user)
+    .where(eq(user.role, "admin"));
+
+  if (adminCount.count === 0) {
+    await db
+      .update(user)
+      .set({
+        role: "admin",
+        adminKey: crypto.randomUUID(),
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, res.user.id));
   }
 
   // Merge guest cart then clean up guest session

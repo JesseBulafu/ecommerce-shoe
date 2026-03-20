@@ -11,9 +11,10 @@ import { sizes } from "@/db/schema/filters/sizes";
 import { brands } from "@/db/schema/brands";
 import { categories } from "@/db/schema/categories";
 import { genders } from "@/db/schema/filters/genders";
-import { eq, desc, count, sql, and, isNull } from "drizzle-orm";
+import { eq, desc, count, sql, and, isNull, ne, asc } from "drizzle-orm";
 import { getSession } from "@/lib/auth/actions";
 import { revalidatePath } from "next/cache";
+import crypto from "crypto";
 
 // ── Auth Guard ────────────────────────────────────────────────────────────────
 
@@ -293,4 +294,109 @@ export async function isAdmin(): Promise<boolean> {
     .limit(1);
 
   return u?.role === "admin";
+}
+
+// ── Admin Users Management ────────────────────────────────────────────────────
+
+export type AdminUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  adminKey: string | null;
+  createdAt: Date;
+};
+
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  await requireAdmin();
+
+  return dbRead
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      adminKey: user.adminKey,
+      createdAt: user.createdAt,
+    })
+    .from(user)
+    .where(isNull(user.deletedAt))
+    .orderBy(asc(user.createdAt));
+}
+
+export async function promoteToAdmin(
+  targetUserId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+
+  // Prevent promoting yourself (already admin)
+  if (targetUserId === admin.id) {
+    return { success: false, error: "You are already an admin." };
+  }
+
+  const [target] = await dbRead
+    .select({ id: user.id, role: user.role })
+    .from(user)
+    .where(eq(user.id, targetUserId))
+    .limit(1);
+
+  if (!target) return { success: false, error: "User not found." };
+  if (target.role === "admin") return { success: false, error: "User is already an admin." };
+
+  // Generate admin key and promote
+  await db
+    .update(user)
+    .set({
+      role: "admin",
+      adminKey: crypto.randomUUID(),
+      updatedAt: new Date(),
+    })
+    .where(eq(user.id, targetUserId));
+
+  revalidatePath("/admin/users");
+  return { success: true };
+}
+
+export async function revokeAdmin(
+  targetUserId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+
+  // Cannot revoke yourself
+  if (targetUserId === admin.id) {
+    return { success: false, error: "You cannot revoke your own admin access." };
+  }
+
+  const [target] = await dbRead
+    .select({ id: user.id, role: user.role, createdAt: user.createdAt })
+    .from(user)
+    .where(eq(user.id, targetUserId))
+    .limit(1);
+
+  if (!target) return { success: false, error: "User not found." };
+  if (target.role !== "admin") return { success: false, error: "User is not an admin." };
+
+  // Protect the first user — they can never be demoted
+  const [firstUser] = await dbRead
+    .select({ id: user.id })
+    .from(user)
+    .where(isNull(user.deletedAt))
+    .orderBy(asc(user.createdAt))
+    .limit(1);
+
+  if (firstUser && firstUser.id === targetUserId) {
+    return { success: false, error: "The original admin cannot be revoked." };
+  }
+
+  await db
+    .update(user)
+    .set({
+      role: "customer",
+      adminKey: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(user.id, targetUserId));
+
+  revalidatePath("/admin/users");
+  return { success: true };
 }

@@ -8,6 +8,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   role: text("role").notNull().default("customer"), // "customer" | "admin"
+  adminKey: text("admin_key"), // generated UUID when promoted to admin, null for customers
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   // Soft-delete: set instead of destroying user data
