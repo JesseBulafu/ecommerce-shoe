@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { isAdmin } from "@/lib/actions/admin";
 import { getSession } from "@/lib/auth/actions";
+import ThemeToggle from "@/components/ThemeToggle";
 
 /* ── Icons (inline SVG for zero-dependency elegance) ────────────────────────── */
 
@@ -91,7 +92,7 @@ function AdminSidebar({ userName, userImage }: { userName: string | null; userIm
         ))}
       </nav>
 
-      {/* Bottom: store link + user */}
+      {/* Bottom: store link + theme toggle + user */}
       <div className="px-3 pb-5 space-y-3">
         <Link
           href="/"
@@ -100,6 +101,10 @@ function AdminSidebar({ userName, userImage }: { userName: string | null; userIm
           <IconStore className="text-dark-500 group-hover:text-dark-900 transition-colors" />
           Back to Store
         </Link>
+        <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-dark-500">
+          <ThemeToggle />
+          <span className="text-[14px]">Toggle Theme</span>
+        </div>
         <div className="border-t border-light-300/60 pt-4 px-3 flex items-center gap-3">
           {userImage ? (
             <Image src={userImage} alt="" width={32} height={32} className="rounded-full object-cover" referrerPolicy="no-referrer" />

@@ -23,10 +23,10 @@ function StatCard({
   accent?: "violet" | "green" | "orange" | "blue";
 }) {
   const accentMap = {
-    violet: "bg-violet-50 text-violet-600",
-    green: "bg-emerald-50 text-emerald-600",
-    orange: "bg-amber-50 text-amber-600",
-    blue: "bg-sky-50 text-sky-600",
+    violet: "bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400",
+    green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+    orange: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
+    blue: "bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
   };
 
   return (

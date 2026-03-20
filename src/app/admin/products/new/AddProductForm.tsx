@@ -340,7 +340,7 @@ export default function AddProductForm({ options }: { options: ProductFormOption
           <h2 className="text-[16px] font-semibold text-dark-900">Publish</h2>
 
           {error && (
-            <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[13px] text-red-700">
+            <div className="rounded-xl bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 px-4 py-3 text-[13px] text-red-700 dark:text-red-400">
               {error}
             </div>
           )}

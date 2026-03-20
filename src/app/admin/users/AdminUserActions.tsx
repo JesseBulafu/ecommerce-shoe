@@ -35,7 +35,7 @@ export default function AdminUserActions({
         onClick={handleAction}
         className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition-all active:scale-[0.97] disabled:opacity-50 cursor-pointer ${
           currentRole === "admin"
-            ? "bg-red-50 text-red-600 hover:bg-red-100"
+            ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25"
             : "bg-dark-900 text-light-100 hover:bg-dark-700"
         }`}
       >

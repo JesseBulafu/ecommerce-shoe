@@ -45,7 +45,7 @@ export default async function AdminUsersPage() {
                   <tr key={u.id} className="group transition hover:bg-light-200/40">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center h-9 w-9 rounded-full bg-violet-50 text-violet-600 text-[13px] font-bold shrink-0">
+                        <span className="flex items-center justify-center h-9 w-9 rounded-full bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400 text-[13px] font-bold shrink-0">
                           {(u.name ?? u.email).charAt(0).toUpperCase()}
                         </span>
                         <div className="min-w-0">
@@ -56,11 +56,11 @@ export default async function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-4">
                       {u.role === "admin" ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700">
+                        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                           Admin
                           {isOriginalAdmin && (
-                            <span className="text-[10px] bg-emerald-100 text-emerald-800 rounded px-1 py-0.5 ml-1">Owner</span>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 rounded px-1 py-0.5 ml-1">Owner</span>
                           )}
                         </span>
                       ) : (
@@ -88,7 +88,7 @@ export default async function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-4">
                       {isSelf ? (
-                        <span className="text-[12px] font-medium text-violet-600 bg-violet-50 px-2.5 py-1 rounded-lg">You</span>
+                        <span className="text-[12px] font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/15 px-2.5 py-1 rounded-lg">You</span>
                       ) : isOriginalAdmin ? (
                         <span className="text-[12px] text-dark-500">Protected</span>
                       ) : (

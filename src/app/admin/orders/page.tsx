@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 function PaymentBadge({ method, status }: { method: string; status: string }) {
   if (method === "cod" && status === "completed") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
         COD Paid
       </span>
@@ -18,7 +18,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   }
   if (method === "cod") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-amber-50 text-amber-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
         COD Pending
       </span>
@@ -26,7 +26,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   }
   if (status === "completed") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
         Paid
       </span>
@@ -34,7 +34,7 @@ function PaymentBadge({ method, status }: { method: string; status: string }) {
   }
   if (status === "failed") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-red-50 text-red-600">
+      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400">
         <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
         Failed
       </span>
