@@ -33,10 +33,10 @@ export default function AdminUserActions({
         type="button"
         disabled={isPending}
         onClick={handleAction}
-        className={`rounded-lg px-3 py-1.5 text-footnote font-medium transition disabled:opacity-60 ${
+        className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition-all active:scale-[0.97] disabled:opacity-50 cursor-pointer ${
           currentRole === "admin"
-            ? "bg-red/10 text-red hover:bg-red/20"
-            : "bg-green px-3 py-1.5 text-light-100 hover:bg-green/80"
+            ? "bg-red-50 text-red-600 hover:bg-red-100"
+            : "bg-dark-900 text-light-100 hover:bg-dark-700"
         }`}
       >
         {isPending
@@ -45,7 +45,7 @@ export default function AdminUserActions({
             ? "Revoke Admin"
             : "Make Admin"}
       </button>
-      {error && <p className="text-footnote text-red mt-1">{error}</p>}
+      {error && <p className="text-[11px] text-red mt-1.5">{error}</p>}
     </div>
   );
 }
