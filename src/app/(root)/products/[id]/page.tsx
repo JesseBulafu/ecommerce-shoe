@@ -7,6 +7,7 @@ import ProductGallery from "@/components/ProductGallery";
 import ReviewsContent from "@/components/ReviewsContent";
 import ReviewForm from "@/components/ReviewForm";
 import RecommendedProductsSection from "@/components/RecommendedProductsSection";
+import ScrollReveal from "@/components/animations/ScrollReveal";
 import {
   getProductById,
   type MockProduct,
@@ -273,10 +274,11 @@ export default async function ProductDetailPage({
           (selected variant, image). Reviews are injected as a ReactNode
           slot so real review data stays server-rendered.
           ---------------------------------------------------------------- */}
-      <section
-        aria-label="Product details"
-        className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
-      >
+      <ScrollReveal>
+        <section
+          aria-label="Product details"
+          className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+        >
         <ProductGallery
           product={product}
           reviewCount={reviewCount}
@@ -293,10 +295,10 @@ export default async function ProductDetailPage({
             />
           }
         />
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* ----------------------------------------------------------------
-          You Might Also Like
           Wrapped in Suspense — never blocks the main PDP render.
           RecommendedProductsSection fetches the DB independently.
           ---------------------------------------------------------------- */}
@@ -305,9 +307,11 @@ export default async function ProductDetailPage({
         className="border-t border-light-300 bg-light-200"
       >
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <h2 className="text-heading-3 font-jost text-dark-900 mb-6">
-            You Might Also Like
-          </h2>
+          <ScrollReveal>
+            <h2 className="text-heading-3 font-jost text-dark-900 mb-6">
+              You Might Also Like
+            </h2>
+          </ScrollReveal>
           <Suspense fallback={<ProductGridSkeleton />}>
             <RecommendedProductsSection productId={id} />
           </Suspense>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { useCartStore } from "@/store/cart";
 
 const navLinks = [
@@ -16,9 +18,32 @@ const navLinks = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
+  const headerRef = useRef<HTMLElement>(null);
+
+  useGSAP(() => {
+    if (!headerRef.current) return;
+
+    // Slide navbar down from above
+    gsap.from(headerRef.current, {
+      y: -80,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+
+    // Stagger the nav links in
+    gsap.from(".nav-link", {
+      y: -20,
+      opacity: 0,
+      duration: 0.5,
+      stagger: 0.08,
+      delay: 0.3,
+      ease: "power2.out",
+    });
+  }, { scope: headerRef });
 
   return (
-    <header className="sticky top-0 z-50 bg-light-100 border-b border-light-300">
+    <header ref={headerRef} className="sticky top-0 z-50 bg-light-100 border-b border-light-300">
       <nav
         className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8"
         aria-label="Primary navigation"
@@ -41,7 +66,7 @@ export default function Navbar() {
             <li key={link.label}>
               <Link
                 href={link.href}
-                className="text-body-medium font-jost text-dark-900 transition hover:text-dark-700"
+                className="nav-link text-body-medium font-jost text-dark-900 transition hover:text-dark-700"
               >
                 {link.label}
               </Link>

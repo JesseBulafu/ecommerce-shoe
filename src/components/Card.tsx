@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import CardHover from "./animations/CardHover";
 
 interface CardProps {
   image: string;
@@ -19,20 +22,8 @@ export default function Card({
   badge,
   href,
 }: CardProps) {
-  const Wrapper = href
-    ? ({ children }: { children: React.ReactNode }) => (
-        <Link href={href} className="group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm transition hover:shadow-md">
-          {children}
-        </Link>
-      )
-    : ({ children }: { children: React.ReactNode }) => (
-        <div className="group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm transition hover:shadow-md">
-          {children}
-        </div>
-      );
-
-  return (
-    <Wrapper>
+  const inner = (
+    <>
       {/* Image container */}
       <div className="relative aspect-square w-full overflow-hidden bg-light-200">
         {badge && (
@@ -63,6 +54,22 @@ export default function Card({
           {price}
         </span>
       </div>
-    </Wrapper>
+    </>
+  );
+
+  const cardClasses = "group flex flex-col overflow-hidden rounded-lg bg-light-100 shadow-sm";
+
+  return (
+    <CardHover>
+      {href ? (
+        <Link href={href} className={cardClasses}>
+          {inner}
+        </Link>
+      ) : (
+        <div className={cardClasses}>
+          {inner}
+        </div>
+      )}
+    </CardHover>
   );
 }

@@ -3,6 +3,8 @@ import Card from "@/components/Card";
 import Filters from "@/components/Filters";
 import Sort from "@/components/Sort";
 import FiltersToggle from "./FiltersToggle";
+import ScrollReveal from "@/components/animations/ScrollReveal";
+import StaggerGrid from "@/components/animations/StaggerGrid";
 import { parseFilterParams } from "@/lib/utils/query";
 import { getAllProducts } from "@/lib/actions/product";
 
@@ -85,9 +87,11 @@ export default async function ProductsPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 font-jost">
       {/* Page heading */}
-      <h1 className="text-heading-2 font-medium text-dark-900 mb-6">
-        New &amp; Featured
-      </h1>
+      <ScrollReveal>
+        <h1 className="text-heading-2 font-medium text-dark-900 mb-6">
+          New &amp; Featured
+        </h1>
+      </ScrollReveal>
 
       <div className="flex gap-8">
         {/* ---- Sidebar (desktop) ---- */}
@@ -138,7 +142,7 @@ export default async function ProductsPage({
               </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {products.map((product) => (
                 <Card
                   key={product.id}
@@ -150,7 +154,7 @@ export default async function ProductsPage({
                   badge={product.badge ?? undefined}
                 />
               ))}
-            </div>
+            </StaggerGrid>
           )}
 
           {/* Pagination hint */}
