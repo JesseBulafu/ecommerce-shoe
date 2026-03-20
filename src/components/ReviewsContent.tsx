@@ -62,16 +62,23 @@ function EmptyReviews() {
 
 interface Props {
   reviews: ReviewItem[];
+  /** Rendered below the review list — typically the ReviewForm. */
+  formSlot?: React.ReactNode;
 }
 
-export default function ReviewsContent({ reviews }: Props) {
-  if (!reviews.length) return <EmptyReviews />;
-
+export default function ReviewsContent({ reviews, formSlot }: Props) {
   return (
-    <div className="divide-y divide-light-300">
-      {reviews.map((review) => (
-        <ReviewCard key={review.id} review={review} />
-      ))}
+    <div>
+      {reviews.length === 0 ? (
+        <EmptyReviews />
+      ) : (
+        <div className="divide-y divide-light-300">
+          {reviews.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+        </div>
+      )}
+      {formSlot}
     </div>
   );
 }

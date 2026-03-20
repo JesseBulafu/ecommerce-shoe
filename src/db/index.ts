@@ -6,11 +6,19 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
 
+/** Strip wrapping quotes that some .env editors add around values. */
+const stripQuotes = (s: string) => s.replace(/^["']|["']$/g, "");
+
+const DATABASE_URL = stripQuotes(process.env.DATABASE_URL ?? "");
+const DATABASE_URL_REPLICA = process.env.DATABASE_URL_REPLICA
+  ? stripQuotes(process.env.DATABASE_URL_REPLICA)
+  : DATABASE_URL;
+
 /**
  * PRIMARY: HTTP client used in edge / serverless functions (no persistent sockets).
  * Drizzle wraps each query in its own Neon HTTP request — zero connection overhead.
  */
-const httpSql = neon(process.env.DATABASE_URL!);
+const httpSql = neon(DATABASE_URL);
 export const db = drizzleHttp(httpSql, { schema });
 
 /**
@@ -19,7 +27,7 @@ export const db = drizzleHttp(httpSql, { schema });
  * Re-uses up to `max` connections from Neon's built-in PgBouncer pooler.
  */
 const writePool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
+  connectionString: DATABASE_URL,
   max: 10,
 });
 export const dbPool = drizzlePool(writePool, { schema });
@@ -30,7 +38,7 @@ export const dbPool = drizzlePool(writePool, { schema });
  * Usage: import { dbRead } from "@/db"  — use for all SELECT operations.
  */
 const readPool = new Pool({
-  connectionString: process.env.DATABASE_URL_REPLICA ?? process.env.DATABASE_URL!,
+  connectionString: DATABASE_URL_REPLICA,
   max: 20, // reads can saturate more connections
 });
 export const dbRead = drizzlePool(readPool, { schema });

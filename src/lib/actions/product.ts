@@ -13,7 +13,7 @@ import {
   sql,
 } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
-import { dbRead } from "@/db";
+import { db, dbRead } from "@/db";
 import {
   brands,
   categories,
@@ -470,6 +470,69 @@ export async function getProductReviews(
     content:   r.content ?? null,
     createdAt: r.createdAt.toISOString(),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// submitReview
+// ---------------------------------------------------------------------------
+
+export type SubmitReviewResult = {
+  success: boolean;
+  error?: string;
+};
+
+/**
+ * Creates a new review for a product. Requires an authenticated user.
+ * Validates rating (1–5) and optional comment (max 2000 chars).
+ * Prevents duplicate reviews — one review per user per product.
+ */
+export async function submitReview(
+  productId: string,
+  rating: number,
+  comment: string,
+): Promise<SubmitReviewResult> {
+  // Lazy-import to avoid circular dependency
+  const { getSession } = await import("@/lib/auth/actions");
+  const session = await getSession();
+
+  if (!session?.user) {
+    return { success: false, error: "You must be signed in to leave a review." };
+  }
+
+  // Validate inputs
+  if (!UUID_RE.test(productId)) {
+    return { success: false, error: "Invalid product." };
+  }
+  const ratingInt = Math.round(rating);
+  if (ratingInt < 1 || ratingInt > 5) {
+    return { success: false, error: "Rating must be between 1 and 5." };
+  }
+  const trimmed = comment.trim().slice(0, 2000);
+
+  // Check for duplicate review
+  const [existing] = await db
+    .select({ id: reviews.id })
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.userId, session.user.id)))
+    .limit(1);
+
+  if (existing) {
+    return { success: false, error: "You have already reviewed this product." };
+  }
+
+  // Insert review
+  await db.insert(reviews).values({
+    productId,
+    userId: session.user.id,
+    rating: ratingInt,
+    comment: trimmed || null,
+  });
+
+  // Revalidate the product page so the new review shows immediately
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath(`/products/${productId}`);
+
+  return { success: true };
 }
 
 // ---------------------------------------------------------------------------

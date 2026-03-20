@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 
 import ProductGallery from "@/components/ProductGallery";
 import ReviewsContent from "@/components/ReviewsContent";
+import ReviewForm from "@/components/ReviewForm";
 import RecommendedProductsSection from "@/components/RecommendedProductsSection";
 import {
   getProductById,
@@ -17,6 +18,7 @@ import {
   getProductReviews,
   type ProductDetail,
 } from "@/lib/actions/product";
+import { getSession } from "@/lib/auth/actions";
 
 // ---------------------------------------------------------------------------
 // Next.js App Router — params is a Promise in v15+
@@ -216,10 +218,11 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
 
-  // Fetch product + reviews in parallel — both are fast single queries.
-  const [product, reviews] = await Promise.all([
+  // Fetch product + reviews + session in parallel — all are fast queries.
+  const [product, reviews, session] = await Promise.all([
     resolveProduct(id),
     getProductReviews(id),
+    getSession(),
   ]);
 
   // Render an inline Not Found block so the navbar and footer stay visible.
@@ -278,7 +281,17 @@ export default async function ProductDetailPage({
           product={product}
           reviewCount={reviewCount}
           averageRating={displayRating}
-          reviewsSlot={<ReviewsContent reviews={reviews} />}
+          reviewsSlot={
+            <ReviewsContent
+              reviews={reviews}
+              formSlot={
+                <ReviewForm
+                  productId={id}
+                  isAuthenticated={!!session?.user}
+                />
+              }
+            />
+          }
         />
       </section>
 
