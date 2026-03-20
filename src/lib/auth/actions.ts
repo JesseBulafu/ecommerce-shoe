@@ -2,7 +2,7 @@
 
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq, lt, and, count } from "drizzle-orm";
+import { eq, lt, and, count, asc, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { guest, user } from "@/db/schema";
@@ -102,6 +102,34 @@ export async function signIn(formData: FormData): Promise<AuthActionResult> {
 
     if (!res || !res.user) {
       return { success: false, error: "Invalid email or password." };
+    }
+
+    // Auto-promote to admin if no admins exist yet
+    // (handles first user who signed up before this code was added)
+    const [adminCount] = await db
+      .select({ count: count() })
+      .from(user)
+      .where(eq(user.role, "admin"));
+
+    if (adminCount.count === 0) {
+      // Promote the earliest registered user (the true "first" user)
+      const [firstUser] = await db
+        .select({ id: user.id })
+        .from(user)
+        .where(isNull(user.deletedAt))
+        .orderBy(asc(user.createdAt))
+        .limit(1);
+
+      if (firstUser) {
+        await db
+          .update(user)
+          .set({
+            role: "admin",
+            adminKey: crypto.randomUUID(),
+            updatedAt: new Date(),
+          })
+          .where(eq(user.id, firstUser.id));
+      }
     }
 
     // Merge guest cart then clean up guest session

@@ -52,7 +52,7 @@ export default async function AdminProductsPage() {
                           </div>
                         )}
                       </div>
-                      <span className="text-caption text-dark-900 font-medium truncate max-w-[200px]">
+                      <span className="text-caption text-dark-900 font-medium truncate max-w-50">
                         {product.name}
                       </span>
                     </div>
