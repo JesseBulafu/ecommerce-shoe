@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useCartStore } from "@/store/cart";
 import ThemeToggle from "@/components/ThemeToggle";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import { signOut } from "@/lib/auth/actions";
 
 function ArstraLogo({ className }: { className?: string }) {
   return (
@@ -37,6 +39,7 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn = false, isAdmin = false, userName, userEmail, userImage }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [, startSignOut] = useTransition();
   const totalItems = useCartStore((s) => s.totalItems());
   const headerRef = useRef<HTMLElement>(null);
 
@@ -177,13 +180,43 @@ export default function Navbar({ isLoggedIn = false, isAdmin = false, userName, 
               My Cart ({totalItems})
             </Link>
             {isLoggedIn && userEmail ? (
-              <div onClick={() => setMobileOpen(false)}>
-                <ProfileDropdown
-                  userName={userName ?? null}
-                  userEmail={userEmail}
-                  userImage={userImage ?? null}
-                  isAdmin={isAdmin}
-                />
+              <div className="rounded-2xl border border-light-300 bg-light-200/50 overflow-hidden">
+                {/* Profile header */}
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-light-300">
+                  {userImage ? (
+                    <Image src={userImage} alt={userName ?? "Profile"} width={40} height={40} className="rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="flex items-center justify-center h-10 w-10 rounded-full bg-violet-600 text-light-100 text-[14px] font-bold shrink-0">
+                      {(userName ?? userEmail).charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    {userName && <p className="text-[14px] font-semibold text-dark-900 truncate">{userName}</p>}
+                    <p className="text-[12px] text-dark-500 truncate">{userEmail}</p>
+                  </div>
+                </div>
+                {/* Actions */}
+                <div className="flex flex-col">
+                  <Link href="/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-[14px] text-dark-900 hover:bg-light-200 transition-colors">
+                    <svg className="h-5 w-5 text-dark-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                    Purchase History
+                  </Link>
+                  {isAdmin && (
+                    <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-[14px] text-dark-900 hover:bg-light-200 transition-colors">
+                      <svg className="h-5 w-5 text-dark-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <div className="border-t border-light-300" />
+                  <button
+                    type="button"
+                    onClick={() => { setMobileOpen(false); startSignOut(async () => { await signOut(); }); }}
+                    className="flex items-center gap-3 px-4 py-3 text-[14px] text-red hover:bg-light-200 transition-colors text-left"
+                  >
+                    <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    Sign Out
+                  </button>
+                </div>
               </div>
             ) : (
               <Link
