@@ -1,22 +1,49 @@
-import {
-  pgTable,
-  serial,
-  text,
-  integer,
-  numeric,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { z } from "zod";
+import { categories } from "./categories";
+import { genders } from "./filters/genders";
+import { brands } from "./brands";
 
 export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  brand: text("brand").notNull(),
   description: text("description").notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
-  image: text("image").notNull(),
-  category: text("category").notNull(),
-  stock: integer("stock").notNull().default(0),
+  categoryId: uuid("category_id")
+    .references(() => categories.id, { onDelete: "set null" })
+    .notNull(),
+  genderId: uuid("gender_id")
+    .references(() => genders.id, { onDelete: "set null" })
+    .notNull(),
+  brandId: uuid("brand_id")
+    .references(() => brands.id, { onDelete: "set null" })
+    .notNull(),
+  isPublished: boolean("is_published").notNull().default(false),
+  defaultVariantId: uuid("default_variant_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertProductSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  categoryId: z.string().uuid(),
+  genderId: z.string().uuid(),
+  brandId: z.string().uuid(),
+  isPublished: z.boolean().default(false),
+  defaultVariantId: z.string().uuid().nullable().optional(),
+});
+
+export const selectProductSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string(),
+  categoryId: z.string().uuid(),
+  genderId: z.string().uuid(),
+  brandId: z.string().uuid(),
+  isPublished: z.boolean(),
+  defaultVariantId: z.string().uuid().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export type Product = typeof products.$inferSelect;

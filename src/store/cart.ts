@@ -1,15 +1,15 @@
 import { create } from "zustand";
-import type { Product } from "@/db/schema";
+import type { ProductVariant } from "@/db/schema";
 
 interface CartItem {
-  product: Product;
+  variant: ProductVariant;
   quantity: number;
 }
 
 interface CartStore {
   items: CartItem[];
-  addItem: (product: Product) => void;
-  removeItem: (productId: number) => void;
+  addItem: (variant: ProductVariant) => void;
+  removeItem: (variantId: string) => void;
   clearCart: () => void;
   totalItems: () => number;
   totalPrice: () => number;
@@ -18,24 +18,24 @@ interface CartStore {
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
 
-  addItem: (product) =>
+  addItem: (variant) =>
     set((state) => {
-      const existing = state.items.find((i) => i.product.id === product.id);
+      const existing = state.items.find((i) => i.variant.id === variant.id);
       if (existing) {
         return {
           items: state.items.map((i) =>
-            i.product.id === product.id
+            i.variant.id === variant.id
               ? { ...i, quantity: i.quantity + 1 }
               : i
           ),
         };
       }
-      return { items: [...state.items, { product, quantity: 1 }] };
+      return { items: [...state.items, { variant, quantity: 1 }] };
     }),
 
-  removeItem: (productId) =>
+  removeItem: (variantId) =>
     set((state) => ({
-      items: state.items.filter((i) => i.product.id !== productId),
+      items: state.items.filter((i) => i.variant.id !== variantId),
     })),
 
   clearCart: () => set({ items: [] }),
@@ -44,7 +44,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   totalPrice: () =>
     get().items.reduce(
-      (sum, i) => sum + Number(i.product.price) * i.quantity,
+      (sum, i) => sum + Number(i.variant.price) * i.quantity,
       0
     ),
 }));
