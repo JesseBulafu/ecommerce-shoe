@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { products } from "./products";
 
@@ -17,7 +17,9 @@ export const productCollections = pgTable("product_collections", {
   collectionId: uuid("collection_id")
     .references(() => collections.id, { onDelete: "cascade" })
     .notNull(),
-});
+}, (t) => [
+  uniqueIndex("idx_product_collections_unique").on(t.productId, t.collectionId),
+]);
 
 export const insertCollectionSchema = z.object({
   name: z.string().min(1),

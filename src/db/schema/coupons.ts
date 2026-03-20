@@ -6,6 +6,7 @@ import {
   numeric,
   integer,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
@@ -25,7 +26,9 @@ export const coupons = pgTable("coupons", {
   expiresAt: timestamp("expires_at").notNull(),
   maxUsage: integer("max_usage").notNull(),
   usedCount: integer("used_count").notNull().default(0),
-});
+}, (t) => [
+  index("idx_coupons_expires_at").on(t.expiresAt),
+]);
 
 export const insertCouponSchema = z.object({
   code: z.string().min(1),

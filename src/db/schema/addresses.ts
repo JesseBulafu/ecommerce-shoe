@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, uuid, text, boolean } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, boolean, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { user } from "./user";
 
@@ -17,7 +17,11 @@ export const addresses = pgTable("addresses", {
   country: text("country").notNull(),
   postalCode: text("postal_code").notNull(),
   isDefault: boolean("is_default").notNull().default(false),
-});
+}, (t) => [
+  index("idx_addresses_user_id").on(t.userId),
+  index("idx_addresses_user_type").on(t.userId, t.type),
+  index("idx_addresses_is_default").on(t.userId, t.isDefault),
+]);
 
 export const insertAddressSchema = z.object({
   userId: z.string().uuid(),

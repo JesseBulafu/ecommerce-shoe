@@ -1,4 +1,4 @@
-import { pgTable, uuid, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { products } from "./products";
 import { user } from "./user";
@@ -14,7 +14,12 @@ export const reviews = pgTable("reviews", {
   rating: integer("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_reviews_product_id").on(t.productId),
+  index("idx_reviews_user_id").on(t.userId),
+  index("idx_reviews_rating").on(t.productId, t.rating),
+  index("idx_reviews_created_at").on(t.createdAt),
+]);
 
 export const insertReviewSchema = z.object({
   productId: z.string().uuid(),

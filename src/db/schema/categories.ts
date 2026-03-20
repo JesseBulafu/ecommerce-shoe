@@ -1,4 +1,4 @@
-import { pgTable, uuid, text } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, index } from "drizzle-orm/pg-core";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
@@ -9,7 +9,9 @@ export const categories = pgTable("categories", {
   parentId: uuid("parent_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
-});
+}, (t) => [
+  index("idx_categories_parent_id").on(t.parentId),
+]);
 
 export const insertCategorySchema = z.object({
   name: z.string().min(1),

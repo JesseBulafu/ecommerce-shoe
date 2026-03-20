@@ -1,4 +1,4 @@
-import { pgTable, uuid, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, timestamp, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { user } from "./user";
 import { guest } from "./guest";
@@ -12,7 +12,10 @@ export const carts = pgTable("carts", {
   }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_carts_user_id").on(t.userId),
+  index("idx_carts_guest_id").on(t.guestId),
+]);
 
 export const cartItems = pgTable("cart_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -23,7 +26,10 @@ export const cartItems = pgTable("cart_items", {
     .references(() => productVariants.id, { onDelete: "cascade" })
     .notNull(),
   quantity: integer("quantity").notNull().default(1),
-});
+}, (t) => [
+  index("idx_cart_items_cart_id").on(t.cartId),
+  index("idx_cart_items_variant_id").on(t.productVariantId),
+]);
 
 export const insertCartSchema = z.object({
   userId: z.string().uuid().nullable().optional(),

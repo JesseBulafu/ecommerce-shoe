@@ -8,6 +8,7 @@ import {
   boolean,
   timestamp,
   jsonb,
+  index,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { products } from "./products";
@@ -32,7 +33,13 @@ export const productVariants = pgTable("product_variants", {
   weight: real("weight"),
   dimensions: jsonb("dimensions"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_variants_product_id").on(t.productId),
+  index("idx_variants_color_id").on(t.colorId),
+  index("idx_variants_size_id").on(t.sizeId),
+  index("idx_variants_in_stock").on(t.inStock),
+  index("idx_variants_price").on(t.price),
+]);
 
 export const productImages = pgTable("product_images", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -45,7 +52,12 @@ export const productImages = pgTable("product_images", {
   url: text("url").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
   isPrimary: boolean("is_primary").notNull().default(false),
-});
+}, (t) => [
+  index("idx_images_product_id").on(t.productId),
+  index("idx_images_variant_id").on(t.variantId),
+  index("idx_images_is_primary").on(t.isPrimary),
+  index("idx_images_product_sort").on(t.productId, t.sortOrder),
+]);
 
 const dimensionsSchema = z.object({
   length: z.number(),

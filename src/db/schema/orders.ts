@@ -6,6 +6,7 @@ import {
   integer,
   text,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { user } from "./user";
@@ -48,7 +49,12 @@ export const orders = pgTable("orders", {
     { onDelete: "set null" }
   ),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_orders_user_id").on(t.userId),
+  index("idx_orders_status").on(t.status),
+  index("idx_orders_user_status").on(t.userId, t.status),
+  index("idx_orders_created_at").on(t.createdAt),
+]);
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -63,7 +69,10 @@ export const orderItems = pgTable("order_items", {
     precision: 10,
     scale: 2,
   }).notNull(),
-});
+}, (t) => [
+  index("idx_order_items_order_id").on(t.orderId),
+  index("idx_order_items_variant_id").on(t.productVariantId),
+]);
 
 export const payments = pgTable("payments", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -74,7 +83,11 @@ export const payments = pgTable("payments", {
   status: paymentStatusEnum("status").notNull().default("initiated"),
   paidAt: timestamp("paid_at"),
   transactionId: text("transaction_id"),
-});
+}, (t) => [
+  index("idx_payments_order_id").on(t.orderId),
+  index("idx_payments_status").on(t.status),
+  index("idx_payments_transaction_id").on(t.transactionId),
+]);
 
 export const insertOrderSchema = z.object({
   userId: z.string().uuid(),

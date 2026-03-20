@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { user } from "./user";
 import { products } from "./products";
@@ -12,7 +12,11 @@ export const wishlists = pgTable("wishlists", {
     .references(() => products.id, { onDelete: "cascade" })
     .notNull(),
   addedAt: timestamp("added_at").defaultNow().notNull(),
-});
+}, (t) => [
+  uniqueIndex("idx_wishlists_user_product").on(t.userId, t.productId),
+  index("idx_wishlists_user_id").on(t.userId),
+  index("idx_wishlists_product_id").on(t.productId),
+]);
 
 export const insertWishlistSchema = z.object({
   userId: z.string().uuid(),

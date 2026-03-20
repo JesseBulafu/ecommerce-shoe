@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { categories } from "./categories";
 import { genders } from "./filters/genders";
@@ -21,7 +21,13 @@ export const products = pgTable("products", {
   defaultVariantId: uuid("default_variant_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_products_category_id").on(t.categoryId),
+  index("idx_products_gender_id").on(t.genderId),
+  index("idx_products_brand_id").on(t.brandId),
+  index("idx_products_is_published").on(t.isPublished),
+  index("idx_products_created_at").on(t.createdAt),
+]);
 
 export const insertProductSchema = z.object({
   name: z.string().min(1),
