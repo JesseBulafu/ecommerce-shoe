@@ -16,8 +16,10 @@ import { dbRead } from "@/db";
 import {
   brands,
   categories,
+  collections,
   colors,
   genders,
+  productCollections,
   productImages,
   products,
   productVariants,
@@ -45,6 +47,8 @@ export type ProductListItem = {
   createdAt: Date;
   /** Primary image URL; null when the product has no images in the DB. */
   image: string | null;
+  /** Derived badge label ("Best Seller", "Extra X% off", etc.) or null. */
+  badge: string | null;
 };
 
 export type ProductVariantDetail = {
@@ -87,11 +91,11 @@ export type ProductDetail = {
  * Strategy (avoids N+1):
  *  1. Build a single WHERE clause from all filters.
  *  2. Run COUNT query and data query **in parallel** using the same WHERE clause.
- *  3. Fetch one representative image per product in a single follow-up query:
- *       - If a color filter is active → prefer variant-specific images for that
- *         color, falling back to generic (variantId IS NULL) images.
- *       - Otherwise → generic primary/first image only.
- *  Total round-trips to the DB: 2 (count+data in parallel, then images).
+ *  3. Fetch one representative image per product + collection slugs, both in a
+ *     single follow-up round-trip (Promise.all):
+ *       - Images: color-specific if a color filter is active, else generic.
+ *       - Collections: used to derive badge labels (e.g. "Best Seller").
+ *  Total round-trips to the DB: 2 (count+data in parallel, then images+collections).
  */
 export async function getAllProducts(params: ProductQueryParams): Promise<{
   products: ProductListItem[];
@@ -176,6 +180,17 @@ export async function getAllProducts(params: ProductQueryParams): Promise<{
         minPrice:     sql<string>`min(${productVariants.price}::numeric)::text`,
         maxPrice:     sql<string>`max(${productVariants.price}::numeric)::text`,
         colorCount:   sql<number>`count(distinct ${productVariants.colorId})::int`,
+        // Badge signals: sale presence and best discount across all variants
+        hasSale:      sql<boolean>`bool_or(${productVariants.salePrice} is not null)`,
+        maxDiscountPct: sql<number | null>`
+          max(
+            case
+              when ${productVariants.salePrice} is not null
+              then round((1 - ${productVariants.salePrice}::numeric / ${productVariants.price}::numeric) * 100)::int
+              else null
+            end
+          )
+        `,
         genderSlug:   genders.slug,
         genderLabel:  genders.label,
         brandName:    brands.name,
@@ -213,9 +228,7 @@ export async function getAllProducts(params: ProductQueryParams): Promise<{
 
   const productIds = dataRows.map((r) => r.id);
 
-  // ── Image query (single round-trip for all returned products) ───────────
-  // Order: variant-specific before generic, then by isPrimary DESC, sortOrder ASC.
-  // We pick the first image per product in JS after the query.
+  // ── Image + collection queries in parallel (single round-trip each) ─────
   type ImageRow = {
     productId: string;
     variantId: string | null;
@@ -224,75 +237,115 @@ export async function getAllProducts(params: ProductQueryParams): Promise<{
     sortOrder: number;
   };
 
-  let imageRows: ImageRow[];
+  const imageQueryNoColor = dbRead
+    .select({
+      productId: productImages.productId,
+      variantId: productImages.variantId,
+      url:        productImages.url,
+      isPrimary:  productImages.isPrimary,
+      sortOrder:  productImages.sortOrder,
+    })
+    .from(productImages)
+    .where(
+      and(
+        inArray(productImages.productId, productIds),
+        isNull(productImages.variantId),
+      )
+    )
+    .orderBy(
+      desc(productImages.isPrimary),
+      asc(productImages.sortOrder),
+    );
 
-  if (color?.length) {
-    // Prefer images tied to the filtered color's variants; generic images are
-    // fetched as a fallback in the same query.
-    imageRows = await dbRead
-      .select({
-        productId: productImages.productId,
-        variantId: productImages.variantId,
-        url:        productImages.url,
-        isPrimary:  productImages.isPrimary,
-        sortOrder:  productImages.sortOrder,
-      })
-      .from(productImages)
-      .leftJoin(
-        productVariants,
-        eq(productVariants.id, productImages.variantId)
-      )
-      .leftJoin(colors, eq(colors.id, productVariants.colorId))
-      .where(
-        and(
-          inArray(productImages.productId, productIds),
-          or(
-            isNull(productImages.variantId),   // generic fallback
-            inArray(colors.slug, color),        // color-specific
-          ),
+  const imageQueryWithColor = color?.length
+    ? dbRead
+        .select({
+          productId: productImages.productId,
+          variantId: productImages.variantId,
+          url:        productImages.url,
+          isPrimary:  productImages.isPrimary,
+          sortOrder:  productImages.sortOrder,
+        })
+        .from(productImages)
+        .leftJoin(productVariants, eq(productVariants.id, productImages.variantId))
+        .leftJoin(colors, eq(colors.id, productVariants.colorId))
+        .where(
+          and(
+            inArray(productImages.productId, productIds),
+            or(
+              isNull(productImages.variantId),
+              inArray(colors.slug, color),
+            ),
+          )
         )
-      )
-      .orderBy(
-        // Variant-specific images rank above generic ones
-        sql`case when ${productImages.variantId} is not null then 0 else 1 end`,
-        desc(productImages.isPrimary),
-        asc(productImages.sortOrder),
-      );
-  } else {
-    // No color filter → fetch generic (variantId IS NULL) images only
-    imageRows = await dbRead
-      .select({
-        productId: productImages.productId,
-        variantId: productImages.variantId,
-        url:        productImages.url,
-        isPrimary:  productImages.isPrimary,
-        sortOrder:  productImages.sortOrder,
-      })
-      .from(productImages)
-      .where(
-        and(
-          inArray(productImages.productId, productIds),
-          isNull(productImages.variantId),
+        .orderBy(
+          sql`case when ${productImages.variantId} is not null then 0 else 1 end`,
+          desc(productImages.isPrimary),
+          asc(productImages.sortOrder),
         )
-      )
-      .orderBy(
-        desc(productImages.isPrimary),
-        asc(productImages.sortOrder),
-      );
-  }
+    : null;
 
-  // Build productId → first-match image URL (rows are already priority-ordered)
+  const collectionQuery = dbRead
+    .select({
+      productId:      productCollections.productId,
+      collectionSlug: collections.slug,
+    })
+    .from(productCollections)
+    .innerJoin(collections, eq(collections.id, productCollections.collectionId))
+    .where(inArray(productCollections.productId, productIds));
+
+  const [imageRows, collectionRows] = await Promise.all([
+    color?.length ? imageQueryWithColor! : imageQueryNoColor,
+    collectionQuery,
+  ]) as [ImageRow[], { productId: string; collectionSlug: string }[]];
+
+  // productId → first image URL
   const imageMap = new Map<string, string>();
   for (const img of imageRows) {
-    if (!imageMap.has(img.productId)) {
-      imageMap.set(img.productId, img.url);
+    if (!imageMap.has(img.productId)) imageMap.set(img.productId, img.url);
+  }
+
+  // productId → Set of collection slugs
+  const collectionMap = new Map<string, Set<string>>();
+  for (const row of collectionRows) {
+    if (!collectionMap.has(row.productId)) collectionMap.set(row.productId, new Set());
+    collectionMap.get(row.productId)!.add(row.collectionSlug);
+  }
+
+  // Derive badge label for each product
+  function deriveBadge(
+    productId: string,
+    hasSale: boolean,
+    maxDiscountPct: number | null,
+  ): string | null {
+    const slugs = collectionMap.get(productId);
+    if (slugs?.has("best-sellers"))         return "Best Seller";
+    if (slugs?.has("sustainable-materials")) return "Sustainable Materials";
+    if (hasSale && maxDiscountPct != null && maxDiscountPct > 0) {
+      // Round down to nearest 10 for clean label (e.g. 23% → "Extra 20% off")
+      const rounded = Math.floor(maxDiscountPct / 10) * 10;
+      return rounded > 0 ? `Extra ${rounded}% off` : null;
     }
+    return null;
   }
 
   return {
     products: dataRows.map((row) => ({
-      ...row,
-      image: imageMap.get(row.id) ?? null,
+      id:           row.id,
+      name:         row.name,
+      description:  row.description,
+      minPrice:     row.minPrice,
+      maxPrice:     row.maxPrice,
+      colorCount:   row.colorCount,
+      genderSlug:   row.genderSlug,
+      genderLabel:  row.genderLabel,
+      brandName:    row.brandName,
+      brandSlug:    row.brandSlug,
+      categoryName: row.categoryName,
+      categorySlug: row.categorySlug,
+      createdAt:    row.createdAt,
+      image:        imageMap.get(row.id) ?? null,
+      badge:        deriveBadge(row.id, row.hasSale, row.maxDiscountPct ?? null),
     })),
     totalCount,
   };

@@ -146,6 +146,7 @@ export default async function ProductsPage({
                   title={product.name}
                   description={`${product.description} · ${product.colorCount} colour${product.colorCount !== 1 ? "s" : ""}`}
                   price={`$${Number(product.minPrice).toFixed(2)}`}
+                  badge={product.badge ?? undefined}
                 />
               ))}
             </div>
