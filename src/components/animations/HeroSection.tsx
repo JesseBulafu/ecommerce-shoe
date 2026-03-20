@@ -55,11 +55,11 @@ export default function HeroSection({
       className={`flex items-center justify-center py-6 sm:py-10 ${className ?? ""}`}
       style={{ perspective: 600 }}
     >
-      <h1 className="text-[40px] leading-[48px] xs:text-[52px] xs:leading-[60px] sm:text-[72px] sm:leading-[78px] md:text-[96px] md:leading-[100px] font-bold font-jost overflow-hidden select-none">
+      <h1 className="text-[40px] leading-[48px] sm:text-heading-1 sm:text-[96px] sm:leading-[100px] font-bold font-jost overflow-hidden select-none">
         {title.split("").map((char, i) => (
           <span
             key={i}
-            className="hero-char inline-block px-1.5 py-0.5 mx-[2px] sm:px-3 sm:py-1 sm:mx-1 rounded-lg sm:rounded-[10px]"
+            className="hero-char inline-block px-1.5 py-0.5 mx-[2px] rounded-lg sm:rounded-[10px] sm:px-3 sm:py-1 sm:mx-[3px]"
             style={{
               transformOrigin: "bottom center",
               background: "rgba(255,255,255,0.15)",
