@@ -23,8 +23,8 @@ export type CheckoutResult = {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DELIVERY_FEE = 2;
-const CURRENCY = "USD";
+const DELIVERY_FEE = 7200;
+const CURRENCY = "UGX";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

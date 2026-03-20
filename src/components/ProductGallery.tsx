@@ -12,6 +12,7 @@ import {
   Star,
 } from "lucide-react";
 import type { MockProduct } from "@/lib/mock/product";
+import { formatPrice } from "@/lib/utils/currency";
 import SizePicker from "./SizePicker";
 import CollapsibleSection, { StarRating } from "./CollapsibleSection";
 import { addCartItem } from "@/lib/actions/cart";
@@ -272,7 +273,7 @@ export default function ProductGallery({
         {/* Price */}
         <div className="flex flex-col gap-1">
           <span className="text-lead font-jost text-dark-900">
-            ${product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </span>
           {product.promoText && (
             <span className="text-caption font-jost text-green">{product.promoText}</span>
@@ -378,7 +379,7 @@ export default function ProductGallery({
 
           <CollapsibleSection title="Shipping &amp; Returns">
             <p>
-              Free standard shipping on orders over $50. Orders typically arrive within
+              Free standard shipping on orders over UGX 180,000. Orders typically arrive within
               3–5 business days. Easy 60-day returns on unworn items — simply use the
               prepaid return label included with your order.
             </p>

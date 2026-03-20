@@ -5,6 +5,7 @@ import Sort from "@/components/Sort";
 import FiltersToggle from "./FiltersToggle";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import StaggerGrid from "@/components/animations/StaggerGrid";
+import { formatPrice } from "@/lib/utils/currency";
 import { parseFilterParams } from "@/lib/utils/query";
 import { getAllProducts } from "@/lib/actions/product";
 
@@ -150,7 +151,7 @@ export default async function ProductsPage({
                   image={product.image ?? "/shoes/shoe-1.jpg"}
                   title={product.name}
                   description={`${product.description} · ${product.colorCount} colour${product.colorCount !== 1 ? "s" : ""}`}
-                  price={`$${Number(product.minPrice).toFixed(2)}`}
+                  price={formatPrice(product.minPrice)}
                   badge={product.badge ?? undefined}
                 />
               ))}

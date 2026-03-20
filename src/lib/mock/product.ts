@@ -42,21 +42,17 @@ export interface MockProduct {
 // ---------------------------------------------------------------------------
 
 const ALL_SIZES: MockSize[] = [
-  { label: "5",    available: true  },
-  { label: "5.5",  available: true  },
-  { label: "6",    available: true  },
-  { label: "6.5",  available: true  },
-  { label: "7",    available: true  },
-  { label: "7.5",  available: true  },
-  { label: "8",    available: true  },
-  { label: "8.5",  available: true  },
-  { label: "9",    available: true  },
-  { label: "9.5",  available: true  },
-  { label: "10",   available: false },
-  { label: "10.5", available: false },
-  { label: "11",   available: false },
-  { label: "11.5", available: false },
-  { label: "12",   available: false },
+  { label: "S38",  available: true  },
+  { label: "S39",  available: true  },
+  { label: "S40",  available: true  },
+  { label: "S41",  available: true  },
+  { label: "S42",  available: true  },
+  { label: "S43",  available: true  },
+  { label: "S44",  available: true  },
+  { label: "S45",  available: false },
+  { label: "S46",  available: false },
+  { label: "S47",  available: false },
+  { label: "S48",  available: false },
 ];
 
 // ---------------------------------------------------------------------------
@@ -70,7 +66,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
     category: "Women's Shoes",
     gender: "Women",
     badge: "Highly Rated",
-    price: 140,
+    price: 504000,
     compareAtPrice: null,
     promoText: "Extra 20% off w/ code SPORT",
     description:
@@ -152,7 +148,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
     category: "Men's Shoes",
     gender: "Men",
     badge: "Best Seller",
-    price: 98.30,
+    price: 353880,
     compareAtPrice: null,
     promoText: null,
     description:
@@ -193,7 +189,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
     category: "Men's Shoes",
     gender: "Men",
     badge: "Extra 20% off",
-    price: 98.30,
+    price: 353880,
     compareAtPrice: null,
     promoText: "Extra 20% off w/ code SPORT",
     description:
@@ -226,7 +222,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
     category: "Men's Shoes",
     gender: "Men",
     badge: "Extra 10% off",
-    price: 98.30,
+    price: 353880,
     compareAtPrice: null,
     promoText: "Extra 10% off w/ code SHOES",
     description:
@@ -260,7 +256,7 @@ export const MOCK_PRODUCTS: MockProduct[] = [
     category: "Men's Shoes",
     gender: "Men",
     badge: null,
-    price: 105,
+    price: 378000,
     compareAtPrice: null,
     promoText: null,
     description:
@@ -298,7 +294,7 @@ export const RELATED_PRODUCTS = [
     title: "Nike Air Force 1 Mid '07",
     description: "Men's Shoes",
     colorCount: 6,
-    price: "$98.30",
+    price: "UGX 353,880",
     badge: "Best Seller",
   },
   {
@@ -307,7 +303,7 @@ export const RELATED_PRODUCTS = [
     title: "Nike Court Vision Low Next Nature",
     description: "Men's Shoes",
     colorCount: 4,
-    price: "$98.30",
+    price: "UGX 353,880",
     badge: "Extra 20% off",
   },
   {
@@ -316,7 +312,7 @@ export const RELATED_PRODUCTS = [
     title: "Nike Dunk Low Retro",
     description: "Men's Shoes",
     colorCount: 8,
-    price: "$98.30",
+    price: "UGX 353,880",
     badge: "Extra 10% off",
   },
 ];

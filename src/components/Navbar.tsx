@@ -31,15 +31,14 @@ export default function Navbar() {
       ease: "power3.out",
     });
 
-    // Stagger the nav links in
-    gsap.from(".nav-link", {
-      y: -20,
-      opacity: 0,
-      duration: 0.5,
-      stagger: 0.08,
-      delay: 0.3,
-      ease: "power2.out",
-    });
+    // Stagger the nav links in (scoped query so it only targets children)
+    const links = headerRef.current.querySelectorAll(".nav-link");
+    if (links.length) {
+      gsap.fromTo(links,
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, delay: 0.3, ease: "power2.out" },
+      );
+    }
   }, { scope: headerRef });
 
   return (

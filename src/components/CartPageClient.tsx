@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Trash2, ShoppingBag, Minus, Plus } from "lucide-react";
 import { useCartStore, type CartLineItem } from "@/store/cart";
+import { formatPrice, DELIVERY_FEE } from "@/lib/utils/currency";
 import { updateCartItem, removeCartItem } from "@/lib/actions/cart";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const DELIVERY_FEE = 2;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -58,7 +57,7 @@ function CartItemRow({
           </div>
           {/* Price — right-aligned, top of the card */}
           <span className="text-body-medium font-jost text-dark-900 shrink-0">
-            ${displayPrice.toFixed(2)}
+            {formatPrice(displayPrice)}
           </span>
         </div>
 
@@ -135,11 +134,11 @@ function OrderSummary({
       <div className="flex flex-col gap-3 text-body font-jost">
         <div className="flex justify-between">
           <span className="text-dark-700">Subtotal</span>
-          <span className="text-dark-900">${subtotal.toFixed(2)}</span>
+          <span className="text-dark-900">{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-dark-700">Estimated Delivery &amp; Handling</span>
-          <span className="text-dark-900">${DELIVERY_FEE.toFixed(2)}</span>
+          <span className="text-dark-900">{formatPrice(DELIVERY_FEE)}</span>
         </div>
       </div>
 
@@ -147,7 +146,7 @@ function OrderSummary({
 
       <div className="flex justify-between text-body-medium font-jost text-dark-900 mb-5">
         <span>Total</span>
-        <span>${total.toFixed(2)}</span>
+        <span>{formatPrice(total)}</span>
       </div>
 
       {isAuthenticated ? (

@@ -39,14 +39,17 @@ const colorData = [
 ];
 
 const sizeData = [
-  { name: "US 6", slug: "us-6", sortOrder: 1 },
-  { name: "US 7", slug: "us-7", sortOrder: 2 },
-  { name: "US 8", slug: "us-8", sortOrder: 3 },
-  { name: "US 9", slug: "us-9", sortOrder: 4 },
-  { name: "US 10", slug: "us-10", sortOrder: 5 },
-  { name: "US 11", slug: "us-11", sortOrder: 6 },
-  { name: "US 12", slug: "us-12", sortOrder: 7 },
-  { name: "US 13", slug: "us-13", sortOrder: 8 },
+  { name: "S38", slug: "s-38", sortOrder: 1 },
+  { name: "S39", slug: "s-39", sortOrder: 2 },
+  { name: "S40", slug: "s-40", sortOrder: 3 },
+  { name: "S41", slug: "s-41", sortOrder: 4 },
+  { name: "S42", slug: "s-42", sortOrder: 5 },
+  { name: "S43", slug: "s-43", sortOrder: 6 },
+  { name: "S44", slug: "s-44", sortOrder: 7 },
+  { name: "S45", slug: "s-45", sortOrder: 8 },
+  { name: "S46", slug: "s-46", sortOrder: 9 },
+  { name: "S47", slug: "s-47", sortOrder: 10 },
+  { name: "S48", slug: "s-48", sortOrder: 11 },
 ];
 
 const brandData = [{ name: "Nike", slug: "nike", logoUrl: null }];
@@ -72,7 +75,7 @@ const productData = [
       "The Nike Air Max 90 stays true to its OG running roots with the iconic Waffle sole, stitched overlays, and classic TPU accents.",
     category: "running",
     gender: "men",
-    basePrice: "130.00",
+    basePrice: "468000.00",
     collections: ["best-sellers"],
   },
   {
@@ -81,7 +84,7 @@ const productData = [
       "The radiance lives on in the Nike Air Force 1 '07, the b-ball OG with soft leather, bold colors, and timeless style.",
     category: "lifestyle",
     gender: "unisex",
-    basePrice: "115.00",
+    basePrice: "414000.00",
     collections: ["best-sellers", "new-arrivals"],
   },
   {
@@ -90,7 +93,7 @@ const productData = [
       "Created for the hardwood but taken to the streets, this '80s basketball icon returns with classic details and court-ready colors.",
     category: "lifestyle",
     gender: "men",
-    basePrice: "110.00",
+    basePrice: "396000.00",
     collections: ["best-sellers"],
   },
   {
@@ -99,7 +102,7 @@ const productData = [
       "The Air Jordan 1 Retro High remakes the classic sneaker with new colors and premium materials, channeling icons of the past.",
     category: "basketball",
     gender: "men",
-    basePrice: "180.00",
+    basePrice: "648000.00",
     collections: ["new-arrivals"],
   },
   {
@@ -108,7 +111,7 @@ const productData = [
       "Continuing to help shatter expectations, the Nike ZoomX Vaporfly NEXT% 3 is designed for the record-breaking speed you need.",
     category: "running",
     gender: "unisex",
-    basePrice: "260.00",
+    basePrice: "936000.00",
     collections: ["new-arrivals"],
   },
   {
@@ -117,7 +120,7 @@ const productData = [
       "Responsive cushioning in the Pegasus provides an energized ride for everyday road running with a sleek, breathable design.",
     category: "running",
     gender: "men",
-    basePrice: "140.00",
+    basePrice: "504000.00",
     collections: ["summer-25"],
   },
   {
@@ -126,7 +129,7 @@ const productData = [
       "In the '77 Blazer, classic basketball styling meets vintage vibes. Exposed foam on the tongue and a crisp leather upper add retro flair.",
     category: "lifestyle",
     gender: "unisex",
-    basePrice: "105.00",
+    basePrice: "378000.00",
     collections: ["best-sellers"],
   },
   {
@@ -135,7 +138,7 @@ const productData = [
       "Nike's first lifestyle Air Max brings you style, comfort, and big attitude with the largest-ever Max Air unit for a super-soft ride.",
     category: "lifestyle",
     gender: "women",
-    basePrice: "160.00",
+    basePrice: "576000.00",
     collections: ["summer-25"],
   },
   {
@@ -144,7 +147,7 @@ const productData = [
       "The Nike Air Max Plus features flowing lines, a bold gradient upper, and Tuned Air cushioning for a ride that's soft and bouncy.",
     category: "lifestyle",
     gender: "men",
-    basePrice: "175.00",
+    basePrice: "630000.00",
     collections: ["summer-25", "new-arrivals"],
   },
   {
@@ -153,7 +156,7 @@ const productData = [
       "The Nike Free Metcon 5 combines flexibility with stability to help you get the most out of your training session.",
     category: "training",
     gender: "men",
-    basePrice: "120.00",
+    basePrice: "432000.00",
     collections: [],
   },
   {
@@ -162,7 +165,7 @@ const productData = [
       "The Nike SB Dunk Low Pro features a durable leather upper, Zoom Air cushioning in the heel, and a sticky rubber outsole for great boardfeel.",
     category: "skateboarding",
     gender: "unisex",
-    basePrice: "115.00",
+    basePrice: "414000.00",
     collections: ["new-arrivals"],
   },
   {
@@ -171,7 +174,7 @@ const productData = [
       "Engineered with a new ZoomX foam and a responsive Air Zoom unit, the Alphafly NEXT% 3 delivers unmatched energy return.",
     category: "running",
     gender: "unisex",
-    basePrice: "285.00",
+    basePrice: "1026000.00",
     collections: [],
   },
   {
@@ -180,7 +183,7 @@ const productData = [
       "The Nike React Infinity Run 4 provides a smooth, stable ride for daily training while helping reduce the risk of injury.",
     category: "running",
     gender: "women",
-    basePrice: "160.00",
+    basePrice: "576000.00",
     collections: ["summer-25"],
   },
   {
@@ -189,7 +192,7 @@ const productData = [
       "The Nike Air Huarache brings back the revolutionary '91 design with its neoprene sleeve and bold style. Lightweight, comfortable, iconic.",
     category: "lifestyle",
     gender: "men",
-    basePrice: "130.00",
+    basePrice: "468000.00",
     collections: ["best-sellers"],
   },
   {
@@ -198,7 +201,7 @@ const productData = [
       "The Nike Metcon 9 is the gold standard for weight training shoes, delivering the stable, durable platform you need to conquer any WOD.",
     category: "training",
     gender: "unisex",
-    basePrice: "150.00",
+    basePrice: "540000.00",
     collections: [],
   },
 ];

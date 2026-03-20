@@ -29,6 +29,7 @@ import {
   user,
 } from "@/db/schema";
 import type { ProductQueryParams } from "@/lib/utils/query";
+import { formatPrice } from "@/lib/utils/currency";
 
 // ---------------------------------------------------------------------------
 // Return types
@@ -642,7 +643,7 @@ export async function getRecommendedProducts(
       id:          r.id,
       name:        r.name,
       description: r.description,
-      price:       `$${Number(r.minPrice).toFixed(2)}`,
+      price:       formatPrice(r.minPrice),
       image:       imageMap.get(r.id) ?? null,
       badge:       rounded > 0 ? `Extra ${rounded}% off` : null,
     };

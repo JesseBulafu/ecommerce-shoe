@@ -3,6 +3,7 @@ import HeroSection from "@/components/animations/HeroSection";
 import Marquee from "@/components/animations/Marquee";
 import ScrollReveal from "@/components/animations/ScrollReveal";
 import StaggerGrid from "@/components/animations/StaggerGrid";
+import { formatPrice } from "@/lib/utils/currency";
 import { getAllProducts } from "@/lib/actions/product";
 
 export default async function Home() {
@@ -12,7 +13,7 @@ export default async function Home() {
     <>
       {/* Scrolling marquee banner */}
       <Marquee
-        text="FREE SHIPPING ON ORDERS OVER $50"
+        text="FREE SHIPPING ON ORDERS OVER UGX 180,000"
         className="bg-dark-900 py-2.5 text-caption font-jost text-light-100 tracking-widest"
         speed={50}
       />
@@ -41,7 +42,7 @@ export default async function Home() {
                 image={product.image ?? "/shoes/shoe-5.avif"}
                 title={product.name}
                 description={`${product.description} · ${product.colorCount} colour${product.colorCount !== 1 ? "s" : ""}`}
-                price={`$${Number(product.minPrice).toFixed(2)}`}
+                price={formatPrice(product.minPrice)}
                 badge={product.badge ?? undefined}
               />
             ))}

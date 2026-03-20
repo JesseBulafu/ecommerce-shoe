@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Lock, ArrowLeft } from "lucide-react";
 import type { CartLineItem } from "@/store/cart";
+import { formatPrice, DELIVERY_FEE } from "@/lib/utils/currency";
 import { initiateCheckout } from "@/lib/actions/checkout";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const DELIVERY_FEE = 2;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -44,7 +43,7 @@ function OrderItemRow({ item }: { item: CartLineItem }) {
           </p>
         </div>
         <span className="text-body font-jost text-dark-900 shrink-0 ml-3">
-          ${displayPrice.toFixed(2)}
+          {formatPrice(displayPrice)}
         </span>
       </div>
     </div>
@@ -137,14 +136,14 @@ export default function CheckoutClient({ items, user }: CheckoutClientProps) {
             <div className="flex flex-col gap-3 text-body font-jost">
               <div className="flex justify-between">
                 <span className="text-dark-700">Subtotal</span>
-                <span className="text-dark-900">${subtotal.toFixed(2)}</span>
+                <span className="text-dark-900">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-dark-700">
                   Estimated Delivery &amp; Handling
                 </span>
                 <span className="text-dark-900">
-                  ${DELIVERY_FEE.toFixed(2)}
+                  {formatPrice(DELIVERY_FEE)}
                 </span>
               </div>
             </div>
@@ -153,7 +152,7 @@ export default function CheckoutClient({ items, user }: CheckoutClientProps) {
 
             <div className="flex justify-between text-body-medium font-jost text-dark-900 mb-5">
               <span>Total</span>
-              <span>${totalAmount.toFixed(2)}</span>
+              <span>{formatPrice(totalAmount)}</span>
             </div>
 
             {error && (

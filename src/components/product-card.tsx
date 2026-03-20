@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTransition } from "react";
 import type { ProductVariant } from "@/db/schema";
 import { useCartStore } from "@/store/cart";
+import { formatPrice } from "@/lib/utils/currency";
 import { addCartItem } from "@/lib/actions/cart";
 
 /** Display-ready data shape passed to the card. Decouples UI from raw DB rows. */
@@ -51,7 +52,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
         <div className="mt-auto flex items-center justify-between pt-4">
           <span className="text-xl font-bold">
-            ${Number(product.defaultVariant.price).toFixed(2)}
+            {formatPrice(product.defaultVariant.price)}
           </span>
           <button
             disabled={isPending}
