@@ -400,3 +400,137 @@ export async function revokeAdmin(
   revalidatePath("/admin/users");
   return { success: true };
 }
+
+// ── Product Form Options ──────────────────────────────────────────────────────
+
+export type ProductFormOptions = {
+  brands: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
+  genders: { id: string; label: string }[];
+  colors: { id: string; name: string; hexCode: string }[];
+  sizes: { id: string; name: string; sortOrder: number }[];
+};
+
+export async function getProductFormOptions(): Promise<ProductFormOptions> {
+  await requireAdmin();
+
+  const [allBrands, allCategories, allGenders, allColors, allSizes] = await Promise.all([
+    dbRead.select({ id: brands.id, name: brands.name }).from(brands),
+    dbRead.select({ id: categories.id, name: categories.name }).from(categories),
+    dbRead.select({ id: genders.id, label: genders.label }).from(genders),
+    dbRead.select({ id: colors.id, name: colors.name, hexCode: colors.hexCode }).from(colors),
+    dbRead.select({ id: sizes.id, name: sizes.name, sortOrder: sizes.sortOrder }).from(sizes).orderBy(asc(sizes.sortOrder)),
+  ]);
+
+  return {
+    brands: allBrands,
+    categories: allCategories,
+    genders: allGenders,
+    colors: allColors,
+    sizes: allSizes,
+  };
+}
+
+// ── Create Product ────────────────────────────────────────────────────────────
+
+export async function createProduct(
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  await requireAdmin();
+
+  const name = (formData.get("name") as string)?.trim();
+  const description = (formData.get("description") as string)?.trim();
+  const categoryId = formData.get("categoryId") as string;
+  const brandId = formData.get("brandId") as string;
+  const genderId = formData.get("genderId") as string;
+  const price = (formData.get("price") as string)?.trim();
+  const salePrice = (formData.get("salePrice") as string)?.trim() || null;
+  const colorId = formData.get("colorId") as string;
+  const stock = formData.get("stock") as string;
+  const publish = formData.get("publish") === "true";
+  const sizeIds = formData.getAll("sizeIds") as string[];
+  const imageFile = formData.get("image") as File | null;
+
+  // Validation
+  if (!name || name.length < 2) return { success: false, error: "Product name is required (min 2 characters)." };
+  if (!description || description.length < 10) return { success: false, error: "Description is required (min 10 characters)." };
+  if (!categoryId || !brandId || !genderId || !colorId) return { success: false, error: "Please select brand, category, gender, and color." };
+  if (!price || isNaN(Number(price)) || Number(price) <= 0) return { success: false, error: "Enter a valid price." };
+  if (salePrice && (isNaN(Number(salePrice)) || Number(salePrice) <= 0)) return { success: false, error: "Sale price must be a positive number." };
+  if (sizeIds.length === 0) return { success: false, error: "Select at least one size." };
+
+  // Handle image upload
+  let imageUrl: string | null = null;
+  if (imageFile && imageFile.size > 0) {
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    if (!ALLOWED.includes(imageFile.type)) return { success: false, error: "Only JPEG, PNG, WebP, or AVIF images allowed." };
+    if (imageFile.size > 5 * 1024 * 1024) return { success: false, error: "Image must be under 5 MB." };
+
+    const { writeFile, mkdir } = await import("fs/promises");
+    const path = await import("path");
+    const dir = path.join(process.cwd(), "public", "uploads", "products");
+    await mkdir(dir, { recursive: true });
+    const ext = imageFile.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") ?? "jpg";
+    const fileName = `${crypto.randomUUID()}.${ext}`;
+    const buffer = Buffer.from(await imageFile.arrayBuffer());
+    await writeFile(path.join(dir, fileName), buffer);
+    imageUrl = `/uploads/products/${fileName}`;
+  }
+
+  // Generate a base SKU from product name
+  const skuBase = name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 8) + "-" + Date.now().toString(36).toUpperCase();
+
+  // Insert product
+  const [newProduct] = await db
+    .insert(products)
+    .values({
+      name,
+      description,
+      categoryId,
+      brandId,
+      genderId,
+      isPublished: publish,
+    })
+    .returning({ id: products.id });
+
+  // Insert one variant per size
+  let firstVariantId: string | null = null;
+  for (let i = 0; i < sizeIds.length; i++) {
+    const sku = `${skuBase}-${i + 1}`;
+    const [variant] = await db
+      .insert(productVariants)
+      .values({
+        productId: newProduct.id,
+        sku,
+        price,
+        salePrice,
+        colorId,
+        sizeId: sizeIds[i],
+        inStock: stock ? parseInt(stock, 10) : 0,
+      })
+      .returning({ id: productVariants.id });
+
+    if (i === 0) firstVariantId = variant.id;
+  }
+
+  // Set default variant
+  if (firstVariantId) {
+    await db.update(products).set({ defaultVariantId: firstVariantId }).where(eq(products.id, newProduct.id));
+  }
+
+  // Insert product image
+  if (imageUrl) {
+    await db.insert(productImages).values({
+      productId: newProduct.id,
+      url: imageUrl,
+      sortOrder: 0,
+      isPrimary: true,
+    });
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  revalidatePath("/");
+
+  return { success: true };
+}

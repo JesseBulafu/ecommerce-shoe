@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { getAdminProducts } from "@/lib/actions/admin";
 import AdminProductActions from "./AdminProductActions";
 
@@ -20,6 +21,16 @@ export default async function AdminProductsPage() {
             {products.length} product{products.length !== 1 && "s"} in catalog
           </p>
         </div>
+        <Link
+          href="/admin/products/new"
+          className="flex items-center gap-2 rounded-xl bg-dark-900 px-4 py-2.5 text-[13px] font-semibold text-light-100 transition-all hover:bg-dark-700 active:scale-[0.97]"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Product
+        </Link>
       </div>
 
       {products.length === 0 ? (
