@@ -23,7 +23,11 @@ export default function RootLayout({
       className={`${jost.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      
+      <head>
+        <link rel="icon" href="/favicon-truck.svg" />
+        <link rel="apple-touch-icon" href="/favicon-truck.svg" />
+        <meta name="theme-color" content="#ff7a00" />
+      </head>
       <body className="min-h-full flex flex-col bg-light-100 text-dark-900 transition-colors duration-300">
         <ThemeProvider>{children}</ThemeProvider>
       </body>

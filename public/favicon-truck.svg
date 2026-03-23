@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="10" fill="#ff7a00" />
+  <g transform="translate(8,14)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- truck body -->
+    <rect x="0" y="8" width="34" height="14" rx="1.5" fill="#fff" stroke="none" />
+    <rect x="0" y="8" width="34" height="14" rx="1.5" fill="#fff" opacity="0" />
+    <!-- cabin -->
+    <path d="M26 8 L34 8 L34 16 L30 16" fill="#fff" stroke="none" />
+    <!-- windshield line -->
+    <path d="M28 9 L30 12" stroke="#ff7a00" stroke-width="1.8" />
+    <!-- wheels -->
+    <circle cx="8" cy="26" r="4" fill="#fff" />
+    <circle cx="26" cy="26" r="4" fill="#fff" />
+    <!-- outline for contrast (thin) -->
+    <path d="M0 8 H26" stroke="#fff" stroke-width="1.2" />
+  </g>
+</svg>
